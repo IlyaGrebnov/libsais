@@ -31,21 +31,50 @@ extern "C" {
     /**
     * Constructs the suffix array of a given string.
     * @param T [0..n-1] The input string.
-    * @param SA [0..n-1] The output array of suffixes.
+    * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given string.
+    * @param fs Extra space available at the end of SA array (can be 0).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int libsais(const unsigned char * T, int * SA, int n);
+    int libsais(const unsigned char * T, int * SA, int n, int fs);
+
+#if defined(_OPENMP)
+    /**
+    * Constructs the suffix array of a given string in parallel using OpenMP.
+    * @param T [0..n-1] The input string.
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the given string.
+    * @param fs Extra space available at the end of SA array (can be 0).
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int libsais_omp(const unsigned char * T, int * SA, int n, int fs, int threads);
+#endif
 
     /**
     * Constructs the burrows-wheeler transformed string of a given string.
     * @param T [0..n-1] The input string.
-    * @param U [0..n-1] The output string. (can be T)
-    * @param A [0..n-1] The temporary array.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
+    * @param fs Extra space available at the end of A array (can be 0).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
-    int libsais_bwt(const unsigned char * T, unsigned char * U, int * A, int n);
+    int libsais_bwt(const unsigned char * T, unsigned char * U, int * A, int n, int fs);
+
+#if defined(_OPENMP)
+    /**
+    * Constructs the burrows-wheeler transformed string of a given string in parallel using OpenMP.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n-1+fs] The temporary array.
+    * @param n The length of the given string.
+    * @param fs Extra space available at the end of A array (can be 0).
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return The primary index if no error occurred, -1 or -2 otherwise.
+    */
+    int libsais_bwt_omp(const unsigned char * T, unsigned char * U, int * A, int n, int fs, int threads);
+#endif
 
 #ifdef __cplusplus
 }
