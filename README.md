@@ -4,7 +4,7 @@ The libsais is a library for fast (see [Benchmarks](#benchmarks) below) linear t
 
 Copyright (c) 2021 Ilya Grebnov <ilya.grebnov@gmail.com>
 
->The libsais is inspired by [libdivsufsort](https://github.com/y-256/libdivsufsort) and [sais](https://sites.google.com/site/yuta256/sais) libraries by Yuta Mori.
+>The libsais is inspired by [libdivsufsort](https://github.com/y-256/libdivsufsort), [sais](https://sites.google.com/site/yuta256/sais) libraries by Yuta Mori and [msufsort](https://github.com/michaelmaniscalco/msufsort) by Michael Maniscalco.
 
 ## Introduction
 The libsais provides simple C99 API to construct suffix array and Burrows-Wheeler transformed string from a given string over constant-size alphabet. The algorithm runs in a linear time using typically only ~16KB of extra memory (with 2n bytes as absolute worst-case; where n is the length of the string). OpenMP acceleration uses 132KB of addition memory per thread.
