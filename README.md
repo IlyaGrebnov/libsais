@@ -1,6 +1,9 @@
 # libsais
 
-The libsais is a library for fast (see [Benchmarks](#benchmarks) below) linear time suffix array and Burrows-Wheeler transform construction based on induced sorting algorithm described in the following paper: Ge Nong, Sen Zhang and Wai Hong Chan, *Two Efficient Algorithms for Linear Suffix Array Construction*, 2008.
+The libsais is a library for fast (see [Benchmarks](#benchmarks) below) linear time suffix array and Burrows-Wheeler transform construction based on induced sorting algorithm described in the following papers: 
+* Ge Nong, Sen Zhang and Wai Hong Chan *Two Efficient Algorithms for Linear Suffix Array Construction*, 2008
+* Nataliya Timoshevskaya, Wu-chun Feng *SAIS-OPT: On the characterization and optimization of the SA-IS algorithm for suffix array construction*, 2014
+* Jing Yi Xie, Ge Nong, Bin Lao, Wentao Xu *Scalable Suffix Sorting on a Multicore Machine*, 2020
 
 Copyright (c) 2021 Ilya Grebnov <ilya.grebnov@gmail.com>
 
