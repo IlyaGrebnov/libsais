@@ -3909,7 +3909,7 @@ static void libsais_reconstruct_compacted_lms_suffixes_32s_2k_omp(int * RESTRICT
 {
     if (f > 0)
     {
-        memcpy(&SA[n - m - 1], &SA[n + fs - m], (size_t)f * sizeof(int));
+        memmove(&SA[n - m - 1], &SA[n + fs - m], (size_t)f * sizeof(int));
 
         libsais_count_and_gather_compacted_lms_suffixes_32s_2k_omp(T, SA, n, k, buckets, threads);
         libsais_reconstruct_lms_suffixes_omp(SA, n, m - f, threads);
