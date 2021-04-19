@@ -29,6 +29,29 @@ extern "C" {
 #endif
 
     /**
+    * Creates the libsais context that allows reusing allocated memory with each libsais operation. 
+    * In multi-threaded environments, use one context per thread for parallel executions.
+    * @return the libsais context, NULL otherwise.
+    */
+    void * libsais_create_ctx(void);
+
+#if defined(_OPENMP)
+    /**
+    * Creates the libsais context that allows reusing allocated memory with each parallel libsais operation using OpenMP. 
+    * In multi-threaded environments, use one context per thread for parallel executions.
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return the libsais context, NULL otherwise.
+    */
+    void * libsais_create_ctx_omp(int threads);
+#endif
+
+    /**
+    * Destroys the libsass context and free previusly allocated memory.
+    * @param ctx The libsais context (can be NULL).
+    */
+    void libsais_free_ctx(void * ctx);
+
+    /**
     * Constructs the suffix array of a given string.
     * @param T [0..n-1] The input string.
     * @param SA [0..n-1+fs] The output array of suffixes.
@@ -37,6 +60,17 @@ extern "C" {
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     int libsais(const unsigned char * T, int * SA, int n, int fs);
+
+    /**
+    * Constructs the suffix array of a given string using libsais context.
+    * @param ctx The libsais context.
+    * @param T [0..n-1] The input string.
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the given string.
+    * @param fs Extra space available at the end of SA array (can be 0).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int libsais_ctx(const void * ctx, const unsigned char * T, int * SA, int n, int fs);
 
 #if defined(_OPENMP)
     /**
@@ -61,6 +95,18 @@ extern "C" {
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
     int libsais_bwt(const unsigned char * T, unsigned char * U, int * A, int n, int fs);
+
+    /**
+    * Constructs the burrows-wheeler transformed string of a given string using libsais context.
+    * @param ctx The libsais context.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n-1+fs] The temporary array.
+    * @param n The length of the given string.
+    * @param fs Extra space available at the end of A array (can be 0).
+    * @return The primary index if no error occurred, -1 or -2 otherwise.
+    */
+    int libsais_bwt_ctx(const void * ctx, const unsigned char * T, unsigned char * U, int * A, int n, int fs);
 
 #if defined(_OPENMP)
     /**
