@@ -107,7 +107,7 @@ Note, multi-core scalability is limited by RAM bandwidth and adding more RAM cha
 
 ## libsais64 for inputs larger than 2GB
 
-Starting from version 2.2.0 libsais could process inputs larger than 2GB. Bote, libsais64 represents suffixes with 64-bit integers, so this double memory requirements.
+Starting from version 2.2.0 libsais64 could process inputs larger than 2GB.
 
 The times below are the minimum of five runs measuring **multi-threaded (MT)** performance of suffix array construction on Azure DS14 v2 (Intel Xeon Platinum 8171M).
 
