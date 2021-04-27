@@ -19,6 +19,8 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* April 27, 2021 (2.2.0)
+  * libsais64 for inputs larger than 2GB.
 * April 19, 2021 (2.1.0)
   * Additional OpenMP acceleration.
 * April 4, 2021 (2.0.0)
@@ -81,13 +83,11 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
 
 # Benchmarks
 
-Benchmarks are moved to own [Benchmarks.md](Benchmarks.md) file.
+Full list of benchmarks are moved to own [Benchmarks.md](Benchmarks.md) file.
 
-## Large page and multi-core systems support
+## Large pages and multi-core systems support
 
 Large-pages and OpenMP improves the libsais performance. Here is an example of such improvements on Manzini Corpus.
-
-> * Multi-core scalability is limited by RAM performance. I hope, DDR5 and more RAM channels improve this in future.
 
 | file            |      size | baseline| LP      | LP w 2c | LP w 3c | LP w 4c | LP w 5c | LP w 6c | LP w 7c | LP w 8c |
 |:---------------:|:---------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
@@ -101,6 +101,21 @@ Large-pages and OpenMP improves the libsais performance. Here is an example of s
 |             rfc | 116421901 |39.81MB/s|46.76MB/s|55.92MB/s|66.48MB/s|70.79MB/s|71.68MB/s|72.21MB/s|71.92MB/s|71.06MB/s|
 |     sprot34.dat | 109617186 |36.09MB/s|45.06MB/s|53.26MB/s|61.60MB/s|59.69MB/s|62.25MB/s|67.20MB/s|66.84MB/s|66.38MB/s|
 |            w3c2 | 104201579 |42.97MB/s|47.09MB/s|54.01MB/s|63.79MB/s|67.67MB/s|69.84MB/s|69.94MB/s|69.65MB/s|68.86MB/s|
+
+Note, multi-core scalability is limited by RAM bandwidth and adding more RAM channels improves performance:
+![enwik9 BWT throughput in MB/s on Azure DS14 v2 (Intel Xeon Platinum 8171M)](Azure_enwik9_benchmark.png?raw=true "enwik9 BWT throughput in MB/s on Azure DS14 v2 (Intel Xeon Platinum 8171M)")
+
+## libsais64 for inputs larger than 2GB
+
+Starting from version 2.2.0 libsais could process inputs larger than 2GB. Bote, libsais64 represents suffixes with 64-bit integers, so this double memory requirements.
+
+The times below are the minimum of five runs measuring **multi-threaded (MT)** performance of suffix array construction on Azure DS14 v2 (Intel Xeon Platinum 8171M).
+
+|  file           |    size     |    libsais64 2.2.0  (MT)   |   divsufsort64 2.0.2 (MT)  |speedup (MT)|
+|:---------------:|:-----------:|:--------------------------:|:--------------------------:|:----------:|
+|         english |  2210395553 |  61.499 sec (  34.28 MB/s) | 435.199 sec (   4.84 MB/s) |**+607.65%**|
+|   GRCh38.p13.fa |  3321586957 |  84.068 sec (  37.68 MB/s) | 782.938 sec (   4.05 MB/s) |**+831.32%**|
+|         enwik10 | 10000000000 | 303.542 sec (  31.42 MB/s) |1927.351 sec (   4.95 MB/s) |**+534.95%**|
 
 ## Additional memory
 
