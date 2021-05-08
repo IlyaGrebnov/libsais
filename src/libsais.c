@@ -25,9 +25,11 @@ Please see the file LICENSE for full copyright information.
 
 #include "libsais.h"
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #if defined(_OPENMP)
     #include <omp.h>
