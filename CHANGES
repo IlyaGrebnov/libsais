@@ -1,3 +1,6 @@
+Changes in 2.3.0 (June 23, 2021)
+- Burrows-Wheeler transform with auxiliary indexes.
+
 Changes in 2.2.0 (April 27, 2021)
 - libsais64 for inputs larger than 2GB.
 
