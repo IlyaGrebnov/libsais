@@ -19,6 +19,8 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* July 14, 2021 (2.4.0)
+  * Reverse Burrows-Wheeler transform.
 * June 23, 2021 (2.3.0)
   * Burrows-Wheeler transform with auxiliary indexes.
 * April 27, 2021 (2.2.0)

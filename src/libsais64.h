@@ -105,6 +105,56 @@ extern "C" {
     int64_t libsais64_bwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t r, int64_t * I, int64_t threads);
 #endif
 
+    /**
+    * Constructs the original string from a given burrows-wheeler transformed string with primary index.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
+    * @param n The length of the given string.
+    * @param i The primary index.
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int64_t libsais64_unbwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t i);
+
+    /**
+    * Constructs the original string from a given burrows-wheeler transformed string with auxiliary indexes.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
+    * @param n The length of the given string.
+    * @param r The sampling rate for auxiliary indexes (must be power of 2).
+    * @param I [0..(n-1)/r] The input auxiliary indexes.
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int64_t libsais64_unbwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t r, const int64_t * I);
+
+#if defined(_OPENMP)
+    /**
+    * Constructs the original string from a given burrows-wheeler transformed string with primary index in parallel using OpenMP.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
+    * @param n The length of the given string.
+    * @param i The primary index.
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int64_t libsais64_unbwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t i, int64_t threads);
+
+    /**
+    * Constructs the original string from a given burrows-wheeler transformed string with auxiliary indexes in parallel using OpenMP.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
+    * @param n The length of the given string.
+    * @param r The sampling rate for auxiliary indexes (must be power of 2).
+    * @param I [0..(n-1)/r] The input auxiliary indexes.
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int64_t libsais64_unbwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t r, const int64_t * I, int64_t threads);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
