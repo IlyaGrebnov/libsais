@@ -19,6 +19,8 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* October 15, 2021 (2.5.0)
+  * Support for optional symbol frequency tables.
 * July 14, 2021 (2.4.0)
   * Reverse Burrows-Wheeler transform.
 * June 23, 2021 (2.3.0)
@@ -40,22 +42,10 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given string.
     * @param fs Extra space available at the end of SA array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int libsais(const unsigned char * T, int * SA, int n, int fs);
-
-#if defined(_OPENMP)
-    /**
-    * Constructs the suffix array of a given string in parallel using OpenMP.
-    * @param T [0..n-1] The input string.
-    * @param SA [0..n-1+fs] The output array of suffixes.
-    * @param n The length of the given string.
-    * @param fs Extra space available at the end of SA array (can be 0).
-    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
-    * @return 0 if no error occurred, -1 or -2 otherwise.
-    */
-    int libsais_omp(const unsigned char * T, int * SA, int n, int fs, int threads);
-#endif
+    int32_t libsais(const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq);
 
     /**
     * Constructs the burrows-wheeler transformed string of a given string.
@@ -64,11 +54,36 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
     * @param fs Extra space available at the end of A array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
-    int libsais_bwt(const unsigned char * T, unsigned char * U, int * A, int n, int fs);
+    int32_t libsais_bwt(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, int32_t fs, int32_t * freq);
+
+    /**
+    * Constructs the original string from a given burrows-wheeler transformed string with primary index.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
+    * @param n The length of the given string.
+    * @param freq [0..255] The input symbol frequency table (can be NULL).
+    * @param i The primary index.
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int32_t libsais_unbwt(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t i);
 
 #if defined(_OPENMP)
+    /**
+    * Constructs the suffix array of a given string in parallel using OpenMP.
+    * @param T [0..n-1] The input string.
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the given string.
+    * @param fs Extra space available at the end of SA array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int32_t libsais_omp(const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq, int32_t threads);
+
     /**
     * Constructs the burrows-wheeler transformed string of a given string in parallel using OpenMP.
     * @param T [0..n-1] The input string.
@@ -76,10 +91,24 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
     * @param fs Extra space available at the end of A array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
-    int libsais_bwt_omp(const unsigned char * T, unsigned char * U, int * A, int n, int fs, int threads);
+    int32_t libsais_bwt_omp(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, int32_t fs, int32_t * freq, int32_t threads);
+
+    /**
+    * Constructs the original string from a given burrows-wheeler transformed string with primary index in parallel using OpenMP.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
+    * @param n The length of the given string.
+    * @param freq [0..255] The input symbol frequency table (can be NULL).
+    * @param i The primary index.
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int32_t libsais_unbwt_omp(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t i, int32_t threads);
 #endif
 ```
 

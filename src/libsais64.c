@@ -1316,17 +1316,30 @@ static void libsais64_count_suffixes_32s(const sa_sint_t * RESTRICT T, sa_sint_t
     }
 }
 
-static void libsais64_initialize_buckets_start_and_end_8u(sa_sint_t * RESTRICT buckets)
+static void libsais64_initialize_buckets_start_and_end_8u(sa_sint_t * RESTRICT buckets, sa_sint_t * RESTRICT freq)
 {
     sa_sint_t * RESTRICT bucket_start = &buckets[6 * ALPHABET_SIZE];
     sa_sint_t * RESTRICT bucket_end   = &buckets[7 * ALPHABET_SIZE];
 
-    fast_sint_t i, j; sa_sint_t sum = 0;
-    for (i = BUCKETS_INDEX4(0, 0), j = 0; i <= BUCKETS_INDEX4(UCHAR_MAX, 0); i += BUCKETS_INDEX4(1, 0), j += 1)
+    if (freq != NULL)
     {
-        bucket_start[j] = sum;
-        sum += buckets[i + BUCKETS_INDEX4(0, 0)] + buckets[i + BUCKETS_INDEX4(0, 1)] + buckets[i + BUCKETS_INDEX4(0, 2)] + buckets[i + BUCKETS_INDEX4(0, 3)];
-        bucket_end[j] = sum;
+        fast_sint_t i, j; sa_sint_t sum = 0;
+        for (i = BUCKETS_INDEX4(0, 0), j = 0; i <= BUCKETS_INDEX4(UCHAR_MAX, 0); i += BUCKETS_INDEX4(1, 0), j += 1)
+        {
+            bucket_start[j] = sum;
+            sum += (freq[j] = buckets[i + BUCKETS_INDEX4(0, 0)] + buckets[i + BUCKETS_INDEX4(0, 1)] + buckets[i + BUCKETS_INDEX4(0, 2)] + buckets[i + BUCKETS_INDEX4(0, 3)]);
+            bucket_end[j] = sum;
+        }
+    }
+    else
+    {
+        fast_sint_t i, j; sa_sint_t sum = 0;
+        for (i = BUCKETS_INDEX4(0, 0), j = 0; i <= BUCKETS_INDEX4(UCHAR_MAX, 0); i += BUCKETS_INDEX4(1, 0), j += 1)
+        {
+            bucket_start[j] = sum;
+            sum += buckets[i + BUCKETS_INDEX4(0, 0)] + buckets[i + BUCKETS_INDEX4(0, 1)] + buckets[i + BUCKETS_INDEX4(0, 2)] + buckets[i + BUCKETS_INDEX4(0, 3)];
+            bucket_end[j] = sum;
+        }
     }
 }
 
@@ -6456,11 +6469,11 @@ static sa_sint_t libsais64_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT
     }
 }
 
-static sa_sint_t libsais64_main_8u(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t * RESTRICT buckets, sa_sint_t bwt, sa_sint_t r, sa_sint_t * RESTRICT I, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
+static sa_sint_t libsais64_main_8u(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t * RESTRICT buckets, sa_sint_t bwt, sa_sint_t r, sa_sint_t * RESTRICT I, sa_sint_t fs, sa_sint_t * freq, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
 {
     sa_sint_t m = libsais64_count_and_gather_lms_suffixes_8u_omp(T, SA, n, buckets, threads, thread_state);
 
-    libsais64_initialize_buckets_start_and_end_8u(buckets);
+    libsais64_initialize_buckets_start_and_end_8u(buckets, freq);
 
     if (m > 0)
     {
@@ -6496,13 +6509,13 @@ static sa_sint_t libsais64_main_8u(const uint8_t * T, sa_sint_t * SA, sa_sint_t 
     return libsais64_induce_final_order_8u_omp(T, SA, n, bwt, r, I, buckets, threads, thread_state);
 }
 
-static sa_sint_t libsais64_main(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t bwt, sa_sint_t r, sa_sint_t * I, sa_sint_t fs, sa_sint_t threads)
+static sa_sint_t libsais64_main(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t bwt, sa_sint_t r, sa_sint_t * I, sa_sint_t fs, sa_sint_t * freq, sa_sint_t threads)
 {
     LIBSAIS_THREAD_STATE *  RESTRICT thread_state   = threads > 1 ? libsais64_alloc_thread_state(threads) : NULL;
     sa_sint_t *             RESTRICT buckets        = (sa_sint_t *)libsais64_alloc_aligned(8 * ALPHABET_SIZE * sizeof(sa_sint_t), 4096);
 
     sa_sint_t index = buckets != NULL && (thread_state != NULL || threads == 1)
-        ? libsais64_main_8u(T, SA, n, buckets, bwt, r, I, fs, threads, thread_state)
+        ? libsais64_main_8u(T, SA, n, buckets, bwt, r, I, fs, freq, threads, thread_state)
         : -2;
 
     libsais64_free_aligned(buckets);
@@ -6563,7 +6576,7 @@ static void libsais64_bwt_copy_8u_omp(uint8_t * RESTRICT U, sa_sint_t * RESTRICT
 
 #endif
 
-int64_t libsais64(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs)
+int64_t libsais64(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq)
 {
     if ((T == NULL) || (SA == NULL) || (n < 0) || (fs < 0))
     {
@@ -6578,20 +6591,21 @@ int64_t libsais64(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs)
     if (n <= INT32_MAX)
     {
         sa_sint_t new_fs = (fs + fs + n + n) <= INT32_MAX ? (fs + fs + n) : INT32_MAX - n;
-        sa_sint_t index = libsais(T, (int32_t *)SA, (int32_t)n, (int32_t)new_fs);
+        sa_sint_t index = libsais(T, (int32_t *)SA, (int32_t)n, (int32_t)new_fs, (int32_t *)freq);
 
         if (index >= 0)
         {
             libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)SA, (uint64_t *)SA, n, 1);
+            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, (uint64_t *)freq, ALPHABET_SIZE, 1); }
         }
 
         return index;
     }
 
-    return libsais64_main(T, SA, n, 0, 0, NULL, fs, 1);
+    return libsais64_main(T, SA, n, 0, 0, NULL, fs, freq, 1);
 }
 
-int64_t libsais64_bwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs)
+int64_t libsais64_bwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq)
 {
     if ((T == NULL) || (U == NULL) || (A == NULL) || (n < 0) || (fs < 0))
     { 
@@ -6606,10 +6620,17 @@ int64_t libsais64_bwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, in
     if (n <= INT32_MAX)
     {
         sa_sint_t new_fs = (fs + fs + n + n) <= INT32_MAX ? (fs + fs + n) : INT32_MAX - n;
-        return libsais_bwt(T, U, (int32_t *)A, (int32_t)n, (int32_t)new_fs);
+        sa_sint_t index = libsais_bwt(T, U, (int32_t *)A, (int32_t)n, (int32_t)new_fs, (int32_t *)freq);
+
+        if (index >= 0)
+        {
+            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, (uint64_t *)freq, ALPHABET_SIZE, 1); }
+        }
+
+        return index;
     }
 
-    sa_sint_t index = libsais64_main(T, A, n, 1, 0, NULL, fs, 1);
+    sa_sint_t index = libsais64_main(T, A, n, 1, 0, NULL, fs, freq, 1);
     if (index >= 0) 
     { 
         index++;
@@ -6622,7 +6643,7 @@ int64_t libsais64_bwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, in
     return index;
 }
 
-int64_t libsais64_bwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t r, int64_t * I)
+int64_t libsais64_bwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t r, int64_t * I)
 {
     if ((T == NULL) || (U == NULL) || (A == NULL) || (n < 0) || (fs < 0) || (r < 2) || ((r & (r - 1)) != 0) || (I == NULL))
     { 
@@ -6639,17 +6660,18 @@ int64_t libsais64_bwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n
     if (n <= INT32_MAX && r <= INT32_MAX)
     {
         sa_sint_t new_fs = (fs + fs + n + n) <= INT32_MAX ? (fs + fs + n) : INT32_MAX - n;
-        sa_sint_t index = libsais_bwt_aux(T, U, (int32_t *)A, (int32_t)n, (int32_t)new_fs, (int32_t)r, (int32_t *)I);
+        sa_sint_t index = libsais_bwt_aux(T, U, (int32_t *)A, (int32_t)n, (int32_t)new_fs, (int32_t *)freq, (int32_t)r, (int32_t *)I);
 
         if (index >= 0)
         {
             libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)I, (uint64_t *)I, 1 + ((n - 1) / r), 1);
+            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, (uint64_t *)freq, ALPHABET_SIZE, 1); }
         }
 
         return index;
     }
 
-    if (libsais64_main(T, A, n, 1, r, I, fs, 1) != 0)
+    if (libsais64_main(T, A, n, 1, r, I, fs, freq, 1) != 0)
     {
         return -2;
     }
@@ -6663,7 +6685,7 @@ int64_t libsais64_bwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n
 
 #if defined(_OPENMP)
 
-int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t threads)
+int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq, int64_t threads)
 {
     if ((T == NULL) || (SA == NULL) || (n < 0) || (fs < 0) || (threads < 0))
     {
@@ -6680,20 +6702,21 @@ int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, in
     if (n <= INT32_MAX)
     {
         sa_sint_t new_fs = (fs + fs + n + n) <= INT32_MAX ? (fs + fs + n) : INT32_MAX - n;
-        sa_sint_t index = libsais_omp(T, (int32_t *)SA, (int32_t)n, (int32_t)new_fs, (int32_t)threads);
+        sa_sint_t index = libsais_omp(T, (int32_t *)SA, (int32_t)n, (int32_t)new_fs, (int32_t *)freq, (int32_t)threads);
 
         if (index >= 0)
         {
             libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)SA, (uint64_t *)SA, n, threads);
+            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, (uint64_t *)freq, ALPHABET_SIZE, threads); }
         }
 
         return index;
     }
 
-    return libsais64_main(T, SA, n, 0, 0, NULL, fs, threads);
+    return libsais64_main(T, SA, n, 0, 0, NULL, fs, freq, threads);
 }
 
-int64_t libsais64_bwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t threads)
+int64_t libsais64_bwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t threads)
 {
     if ((T == NULL) || (U == NULL) || (A == NULL) || (n < 0) || (fs < 0) || (threads < 0))
     {
@@ -6710,10 +6733,17 @@ int64_t libsais64_bwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n
     if (n <= INT32_MAX)
     {
         sa_sint_t new_fs = (fs + fs + n + n) <= INT32_MAX ? (fs + fs + n) : INT32_MAX - n;
-        return libsais_bwt_omp(T, U, (int32_t *)A, (int32_t)n, (int32_t)new_fs, (int32_t)threads);
+        sa_sint_t index = libsais_bwt_omp(T, U, (int32_t *)A, (int32_t)n, (int32_t)new_fs, (int32_t *)freq, (int32_t)threads);
+
+        if (index >= 0)
+        {
+            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, (uint64_t *)freq, ALPHABET_SIZE, threads); }
+        }
+
+        return index;
     }
 
-    sa_sint_t index = libsais64_main(T, A, n, 1, 0, NULL, fs, threads);
+    sa_sint_t index = libsais64_main(T, A, n, 1, 0, NULL, fs, freq, threads);
     if (index >= 0)
     {
         index++;
@@ -6726,7 +6756,7 @@ int64_t libsais64_bwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n
     return index;
 }
 
-int64_t libsais64_bwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t r, int64_t * I, int64_t threads)
+int64_t libsais64_bwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t r, int64_t * I, int64_t threads)
 {
     if ((T == NULL) || (U == NULL) || (A == NULL) || (n < 0) || (fs < 0) || (r < 2) || ((r & (r - 1)) != 0) || (I == NULL) || (threads < 0))
     {
@@ -6745,17 +6775,18 @@ int64_t libsais64_bwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64
     if (n <= INT32_MAX && r <= INT32_MAX)
     {
         sa_sint_t new_fs = (fs + fs + n + n) <= INT32_MAX ? (fs + fs + n) : INT32_MAX - n;
-        sa_sint_t index = libsais_bwt_aux_omp(T, U, (int32_t *)A, (int32_t)n, (int32_t)new_fs, (int32_t)r, (int32_t *)I, (int32_t)threads);
+        sa_sint_t index = libsais_bwt_aux_omp(T, U, (int32_t *)A, (int32_t)n, (int32_t)new_fs, (int32_t *)freq, (int32_t)r, (int32_t *)I, (int32_t)threads);
 
         if (index >= 0)
         {
             libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)I, (uint64_t *)I, 1 + ((n - 1) / r), threads);
+            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, (uint64_t *)freq, ALPHABET_SIZE, threads); }
         }
 
         return index;
     }
 
-    if (libsais64_main(T, A, n, 1, r, I, fs, threads) != 0)
+    if (libsais64_main(T, A, n, 1, r, I, fs, freq, threads) != 0)
     {
         return -2;
     }
@@ -6957,7 +6988,7 @@ static void libsais64_unbwt_calculate_biPSI(const uint8_t * RESTRICT T, sa_uint_
     }
 }
 
-static void libsais64_unbwt_init_single(const uint8_t * RESTRICT T, sa_uint_t * RESTRICT P, sa_sint_t n, const sa_uint_t * RESTRICT I, sa_uint_t * RESTRICT bucket2, uint16_t * RESTRICT fastbits)
+static void libsais64_unbwt_init_single(const uint8_t * RESTRICT T, sa_uint_t * RESTRICT P, sa_sint_t n, const sa_sint_t * freq, const sa_uint_t * RESTRICT I, sa_uint_t * RESTRICT bucket2, uint16_t * RESTRICT fastbits)
 {
     sa_uint_t bucket1[ALPHABET_SIZE];
 
@@ -6965,10 +6996,17 @@ static void libsais64_unbwt_init_single(const uint8_t * RESTRICT T, sa_uint_t * 
     fast_uint_t lastc = T[0];
     fast_uint_t shift = 0; while ((n >> shift) > (1 << UNBWT_FASTBITS)) { shift++; }
 
-    memset(bucket1, 0, ALPHABET_SIZE * sizeof(sa_uint_t));
-    memset(bucket2, 0, ALPHABET_SIZE * ALPHABET_SIZE * sizeof(sa_uint_t));
+    if (freq != NULL)
+    {
+        memcpy(bucket1, freq, ALPHABET_SIZE * sizeof(sa_uint_t));
+    }
+    else
+    {
+        memset(bucket1, 0, ALPHABET_SIZE * sizeof(sa_uint_t));
+        libsais64_unbwt_compute_histogram(T, n, bucket1);
+    }
 
-    libsais64_unbwt_compute_histogram(T, n, bucket1);
+    memset(bucket2, 0, ALPHABET_SIZE * ALPHABET_SIZE * sizeof(sa_uint_t));
     libsais64_unbwt_compute_bigram_histogram_single(T, bucket1, bucket2, index);
 
     libsais64_unbwt_calculate_fastbits(bucket2, fastbits, lastc, shift);
@@ -6994,7 +7032,7 @@ static void libsais64_unbwt_compute_bigram_histogram_parallel(const uint8_t * RE
     }
 }
 
-static void libsais64_unbwt_init_parallel(const uint8_t * RESTRICT T, sa_uint_t * RESTRICT P, sa_sint_t n, const sa_uint_t * RESTRICT I, sa_uint_t * RESTRICT bucket2, uint16_t * RESTRICT fastbits, sa_uint_t * RESTRICT buckets, sa_sint_t threads)
+static void libsais64_unbwt_init_parallel(const uint8_t * RESTRICT T, sa_uint_t * RESTRICT P, sa_sint_t n, const sa_sint_t * freq, const sa_uint_t * RESTRICT I, sa_uint_t * RESTRICT bucket2, uint16_t * RESTRICT fastbits, sa_uint_t * RESTRICT buckets, sa_sint_t threads)
 {
     sa_uint_t bucket1[ALPHABET_SIZE];
 
@@ -7012,7 +7050,7 @@ static void libsais64_unbwt_init_parallel(const uint8_t * RESTRICT T, sa_uint_t 
 
         if (omp_num_threads == 1)
         {
-            libsais64_unbwt_init_single(T, P, n, I, bucket2, fastbits);
+            libsais64_unbwt_init_single(T, P, n, freq, I, bucket2, fastbits);
         }
         else
         {
@@ -7375,26 +7413,26 @@ static void libsais64_unbwt_decode_omp(const uint8_t * RESTRICT T, uint8_t * RES
     U[n - 1] = (uint8_t)lastc;
 }
 
-static sa_sint_t libsais64_unbwt_core(const uint8_t * RESTRICT T, uint8_t * RESTRICT U, sa_uint_t * RESTRICT P, sa_sint_t n, sa_sint_t r, const sa_uint_t * RESTRICT I, sa_uint_t * RESTRICT bucket2, uint16_t * RESTRICT fastbits, sa_uint_t * RESTRICT buckets, sa_sint_t threads)
+static sa_sint_t libsais64_unbwt_core(const uint8_t * RESTRICT T, uint8_t * RESTRICT U, sa_uint_t * RESTRICT P, sa_sint_t n, const sa_sint_t * freq, sa_sint_t r, const sa_uint_t * RESTRICT I, sa_uint_t * RESTRICT bucket2, uint16_t * RESTRICT fastbits, sa_uint_t * RESTRICT buckets, sa_sint_t threads)
 {
 #if defined(_OPENMP)
     if (threads > 1 && n >= 262144)
     {
-        libsais64_unbwt_init_parallel(T, P, n, I, bucket2, fastbits, buckets, threads);
+        libsais64_unbwt_init_parallel(T, P, n, freq, I, bucket2, fastbits, buckets, threads);
     }
     else
 #else
     UNUSED(buckets);
 #endif
     {
-        libsais64_unbwt_init_single(T, P, n, I, bucket2, fastbits);
+        libsais64_unbwt_init_single(T, P, n, freq, I, bucket2, fastbits);
     }
 
     libsais64_unbwt_decode_omp(T, U, P, n, r, I, bucket2, fastbits, threads);
     return 0;
 }
 
-static sa_sint_t libsais64_unbwt_main(const uint8_t * T, uint8_t * U, sa_uint_t * P, sa_sint_t n, sa_sint_t r, const sa_uint_t * I, sa_sint_t threads)
+static sa_sint_t libsais64_unbwt_main(const uint8_t * T, uint8_t * U, sa_uint_t * P, sa_sint_t n, const sa_sint_t * freq, sa_sint_t r, const sa_uint_t * I, sa_sint_t threads)
 {
     fast_uint_t shift = 0; while ((n >> shift) > (1 << UNBWT_FASTBITS)) { shift++; }
 
@@ -7403,7 +7441,7 @@ static sa_sint_t libsais64_unbwt_main(const uint8_t * T, uint8_t * U, sa_uint_t 
     sa_uint_t *     RESTRICT buckets        = threads > 1 ? (sa_uint_t *)libsais64_alloc_aligned((size_t)threads * (ALPHABET_SIZE + (ALPHABET_SIZE * ALPHABET_SIZE)) * sizeof(sa_uint_t), 4096) : NULL;
 
     sa_sint_t index = bucket2 != NULL && fastbits != NULL && (buckets != NULL || threads == 1)
-        ? libsais64_unbwt_core(T, U, P, n, r, I, bucket2, fastbits, buckets, threads)
+        ? libsais64_unbwt_core(T, U, P, n, freq, r, I, bucket2, fastbits, buckets, threads)
         : -2;
 
     libsais64_free_aligned(buckets);
@@ -7413,12 +7451,12 @@ static sa_sint_t libsais64_unbwt_main(const uint8_t * T, uint8_t * U, sa_uint_t 
     return index;
 }
 
-int64_t libsais64_unbwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t i)
+int64_t libsais64_unbwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t i)
 {
-    return libsais64_unbwt_aux(T, U, A, n, n, &i);
+    return libsais64_unbwt_aux(T, U, A, n, freq, n, &i);
 }
 
-int64_t libsais64_unbwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t r, const int64_t * I)
+int64_t libsais64_unbwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t r, const int64_t * I)
 {
     if ((T == NULL) || (U == NULL) || (A == NULL) || (n < 0) || ((r != n) && ((r < 2) || ((r & (r - 1)) != 0))) || (I == NULL))
     {
@@ -7436,21 +7474,22 @@ int64_t libsais64_unbwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t
     if (n <= INT32_MAX && r <= INT32_MAX && (n - 1) / r < 1024)
     {
         int32_t indexes[1024]; for (t = 0; t <= (n - 1) / r; ++t) { indexes[t] = (int32_t)I[t]; }
+        int32_t frequencies[ALPHABET_SIZE]; if (freq != NULL) { for (t = 0; t < ALPHABET_SIZE; ++t) { frequencies[t] = (int32_t)freq[t]; } }
 
-        return libsais_unbwt_aux(T, U, (int32_t *)A, (int32_t)n, (int32_t)r, indexes);
+        return libsais_unbwt_aux(T, U, (int32_t *)A, (int32_t)n, freq != NULL ? frequencies : NULL, (int32_t)r, indexes);
     }
 
-    return libsais64_unbwt_main(T, U, (sa_uint_t *)A, n, r, (const sa_uint_t *)I, 1);
+    return libsais64_unbwt_main(T, U, (sa_uint_t *)A, n, freq, r, (const sa_uint_t *)I, 1);
 }
 
 #if defined(_OPENMP)
 
-int64_t libsais64_unbwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t i, int64_t threads)
+int64_t libsais64_unbwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t i, int64_t threads)
 {
-    return libsais64_unbwt_aux_omp(T, U, A, n, n, &i, threads);
+    return libsais64_unbwt_aux_omp(T, U, A, n, freq, n, &i, threads);
 }
 
-int64_t libsais64_unbwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t r, const int64_t * I, int64_t threads)
+int64_t libsais64_unbwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t r, const int64_t * I, int64_t threads)
 {
     if ((T == NULL) || (U == NULL) || (A == NULL) || (n < 0) || ((r != n) && ((r < 2) || ((r & (r - 1)) != 0))) || (I == NULL) || (threads < 0))
     {
@@ -7468,12 +7507,13 @@ int64_t libsais64_unbwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int
     if (n <= INT32_MAX && r <= INT32_MAX && (n - 1) / r < 1024)
     {
         int32_t indexes[1024]; for (t = 0; t <= (n - 1) / r; ++t) { indexes[t] = (int32_t)I[t]; }
+        int32_t frequencies[ALPHABET_SIZE]; if (freq != NULL) { for (t = 0; t < ALPHABET_SIZE; ++t) { frequencies[t] = (int32_t)freq[t]; } }
 
-        return libsais_unbwt_aux_omp(T, U, (int32_t *)A, (int32_t)n, (int32_t)r, indexes, (int32_t)threads);
+        return libsais_unbwt_aux_omp(T, U, (int32_t *)A, (int32_t)n, freq != NULL ? frequencies : NULL,(int32_t)r, indexes, (int32_t)threads);
     }
 
     threads = threads > 0 ? threads : omp_get_max_threads();
-    return libsais64_unbwt_main(T, U, (sa_uint_t *)A, n, r, (const sa_uint_t *)I, threads);
+    return libsais64_unbwt_main(T, U, (sa_uint_t *)A, n, freq, r, (const sa_uint_t *)I, threads);
 }
 
 #endif

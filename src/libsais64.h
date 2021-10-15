@@ -36,9 +36,10 @@ extern "C" {
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given string.
     * @param fs The extra space available at the end of SA array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs);
+    int64_t libsais64(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq);
 
 #if defined(_OPENMP)
     /**
@@ -47,10 +48,11 @@ extern "C" {
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given string.
     * @param fs The extra space available at the end of SA array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t threads);
+    int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq, int64_t threads);
 #endif
 
     /**
@@ -60,9 +62,10 @@ extern "C" {
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
     * @param fs The extra space available at the end of A array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64_bwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs);
+    int64_t libsais64_bwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq);
 
     /**
     * Constructs the burrows-wheeler transformed string of a given string with auxiliary indexes.
@@ -71,11 +74,12 @@ extern "C" {
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
     * @param fs The extra space available at the end of A array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The output auxiliary indexes.
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64_bwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t r, int64_t * I);
+    int64_t libsais64_bwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t r, int64_t * I);
 
 #if defined(_OPENMP)
     /**
@@ -85,10 +89,11 @@ extern "C" {
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
     * @param fs The extra space available at the end of A array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64_bwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t threads);
+    int64_t libsais64_bwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t threads);
 
     /**
     * Constructs the burrows-wheeler transformed string of a given string with auxiliary indexes in parallel using OpenMP.
@@ -97,12 +102,13 @@ extern "C" {
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
     * @param fs The extra space available at the end of A array (can be 0).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The output auxiliary indexes.
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64_bwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t r, int64_t * I, int64_t threads);
+    int64_t libsais64_bwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t r, int64_t * I, int64_t threads);
 #endif
 
     /**
@@ -111,10 +117,11 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
     * @param n The length of the given string.
+    * @param freq [0..255] The input symbol frequency table (can be NULL).
     * @param i The primary index.
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64_unbwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t i);
+    int64_t libsais64_unbwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t i);
 
     /**
     * Constructs the original string from a given burrows-wheeler transformed string with auxiliary indexes.
@@ -122,11 +129,12 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
     * @param n The length of the given string.
+    * @param freq [0..255] The input symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The input auxiliary indexes.
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64_unbwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t r, const int64_t * I);
+    int64_t libsais64_unbwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t r, const int64_t * I);
 
 #if defined(_OPENMP)
     /**
@@ -135,11 +143,12 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
     * @param n The length of the given string.
+    * @param freq [0..255] The input symbol frequency table (can be NULL).
     * @param i The primary index.
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64_unbwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t i, int64_t threads);
+    int64_t libsais64_unbwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t i, int64_t threads);
 
     /**
     * Constructs the original string from a given burrows-wheeler transformed string with auxiliary indexes in parallel using OpenMP.
@@ -147,12 +156,13 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
     * @param n The length of the given string.
+    * @param freq [0..255] The input symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The input auxiliary indexes.
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
-    int64_t libsais64_unbwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t r, const int64_t * I, int64_t threads);
+    int64_t libsais64_unbwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t r, const int64_t * I, int64_t threads);
 #endif
 
 #ifdef __cplusplus
