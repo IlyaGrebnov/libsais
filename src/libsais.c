@@ -150,7 +150,11 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
 
 #if defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
     #if defined(__GNUC__) || defined(__clang__)
-        #define libsais_bswap16(x) (__builtin_bswap16(x))
+        #if defined(__builtin_bswap16)
+            #define libsais_bswap16(x) (__builtin_bswap16(x))
+        #else
+            #define libsais_bswap16(x) ((uint16_t)(x >> 8) | (uint16_t)(x << 8))
+        #endif
     #elif defined(_MSC_VER) && !defined(__INTEL_COMPILER)
         #define libsais_bswap16(x) (_byteswap_ushort(x))
     #else
