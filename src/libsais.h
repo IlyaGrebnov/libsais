@@ -3,7 +3,7 @@
 This file is a part of libsais, a library for linear time
 suffix array and burrows wheeler transform construction.
 
-   Copyright (c) 2021 Ilya Grebnov <ilya.grebnov@gmail.com>
+   Copyright (c) 2021-2022 Ilya Grebnov <ilya.grebnov@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -58,11 +58,23 @@ extern "C" {
     * @param T [0..n-1] The input string.
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given string.
-    * @param fs The extra space available at the end of SA array (can be 0).
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     int32_t libsais(const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq);
+
+    /**
+    * Constructs the suffix array of a given integer array.
+    * Note, during construction input array will be modified, but restored at the end if no errors occurred.
+    * @param T [0..n-1] The input integer array.
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the integer array.
+    * @param k The alphabet size of the input integer array.
+    * @param fs Extra space available at the end of SA array (can be 0, but 4k or better 6k is recommended for optimal performance).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int32_t libsais_int(int32_t * T, int32_t * SA, int32_t n, int32_t k, int32_t fs);
 
     /**
     * Constructs the suffix array of a given string using libsais context.
@@ -70,7 +82,7 @@ extern "C" {
     * @param T [0..n-1] The input string.
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given string.
-    * @param fs The extra space available at the end of SA array (can be 0).
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
@@ -82,12 +94,25 @@ extern "C" {
     * @param T [0..n-1] The input string.
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given string.
-    * @param fs The extra space available at the end of SA array (can be 0).
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     int32_t libsais_omp(const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq, int32_t threads);
+
+    /**
+    * Constructs the suffix array of a given integer array in parallel using OpenMP.
+    * Note, during construction input array will be modified, but restored at the end if no errors occurred.
+    * @param T [0..n-1] The input integer array.
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the integer array.
+    * @param k The alphabet size of the input integer array.
+    * @param fs Extra space available at the end of SA array (can be 0, but 4k or better 6k is recommended for optimal performance).
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int32_t libsais_int_omp(int32_t * T, int32_t * SA, int32_t n, int32_t k, int32_t fs, int32_t threads);
 #endif
 
     /**
@@ -96,7 +121,7 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
@@ -108,7 +133,7 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The output auxiliary indexes.
@@ -123,7 +148,7 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
@@ -136,7 +161,7 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The output auxiliary indexes.
@@ -151,7 +176,7 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
@@ -164,7 +189,7 @@ extern "C" {
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The output auxiliary indexes.

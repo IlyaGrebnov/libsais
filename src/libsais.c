@@ -3,7 +3,7 @@
 This file is a part of libsais, a library for linear time
 suffix array and burrows wheeler transform construction.
 
-   Copyright (c) 2021 Ilya Grebnov <ilya.grebnov@gmail.com>
+   Copyright (c) 2021-2022 Ilya Grebnov <ilya.grebnov@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ suffix array and burrows wheeler transform construction.
 Please see the file LICENSE for full copyright information.
 
 --*/
-
-#include "libsais_internal.h"
 
 #include "libsais.h"
 
@@ -107,9 +105,17 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
     #if __has_builtin(__builtin_prefetch)
         #define HAS_BUILTIN_PREFECTCH
     #endif
-#elif defined(__GNUC__) && __GNUC__ > 3
+#elif defined(__GNUC__) && ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 2)) || (__GNUC__ >= 4)
     #define HAS_BUILTIN_PREFECTCH
-#endif 
+#endif
+
+#if defined(__has_builtin)
+    #if __has_builtin(__builtin_bswap16)
+        #define HAS_BUILTIN_BSWAP16
+    #endif
+#elif defined(__GNUC__) && ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 8)) || (__GNUC__ >= 5)
+    #define HAS_BUILTIN_BSWAP16
+#endif
 
 #if defined(HAS_BUILTIN_PREFECTCH)
     #define libsais_prefetch(address) __builtin_prefetch((const void *)(address), 0, 0)
@@ -149,12 +155,8 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
 #endif
 
 #if defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
-    #if defined(__GNUC__) || defined(__clang__)
-        #if defined(__builtin_bswap16)
-            #define libsais_bswap16(x) (__builtin_bswap16(x))
-        #else
-            #define libsais_bswap16(x) ((uint16_t)(x >> 8) | (uint16_t)(x << 8))
-        #endif
+    #if defined(HAS_BUILTIN_BSWAP16)
+        #define libsais_bswap16(x) (__builtin_bswap16(x))
     #elif defined(_MSC_VER) && !defined(__INTEL_COMPILER)
         #define libsais_bswap16(x) (_byteswap_ushort(x))
     #else
@@ -6259,6 +6261,8 @@ static void libsais_reconstruct_compacted_lms_suffixes_32s_1k_omp(sa_sint_t * RE
 
 static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t k, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
 {
+    fs = fs < (SAINT_MAX - n) ? fs : (SAINT_MAX - n);
+
     if (k > 0 && fs / k >= 6)
     {
         sa_sint_t alignment = (fs - 1024) / k >= 6 ? 1024 : 16;
@@ -6451,21 +6455,10 @@ static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT S
     }
 }
 
-int32_t libsais_main_32s_internal(int32_t * T, int32_t * SA, int32_t n, int32_t k, int32_t fs, int32_t threads)
-{
-    LIBSAIS_THREAD_STATE * RESTRICT thread_state = threads > 1 ? libsais_alloc_thread_state(threads) : NULL;
-
-    sa_sint_t index = thread_state != NULL || threads == 1
-        ? libsais_main_32s(T, SA, n, k, fs, threads, thread_state)
-        : -2;
-
-    libsais_free_thread_state(thread_state);
-
-    return index;
-}
-
 static sa_sint_t libsais_main_8u(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t * RESTRICT buckets, sa_sint_t bwt, sa_sint_t r, sa_sint_t * RESTRICT I, sa_sint_t fs, sa_sint_t * freq, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
 {
+    fs = fs < (SAINT_MAX - n) ? fs : (SAINT_MAX - n);
+
     sa_sint_t m = libsais_count_and_gather_lms_suffixes_8u_omp(T, SA, n, buckets, threads, thread_state);
 
     libsais_initialize_buckets_start_and_end_8u(buckets, freq);
@@ -6514,6 +6507,19 @@ static sa_sint_t libsais_main(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, sa
         : -2;
 
     libsais_free_aligned(buckets);
+    libsais_free_thread_state(thread_state);
+
+    return index;
+}
+
+static int32_t libsais_main_int(sa_sint_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t k, sa_sint_t fs, sa_sint_t threads)
+{
+    LIBSAIS_THREAD_STATE * RESTRICT thread_state = threads > 1 ? libsais_alloc_thread_state(threads) : NULL;
+
+    sa_sint_t index = thread_state != NULL || threads == 1
+        ? libsais_main_32s(T, SA, n, k, fs, threads, thread_state)
+        : -2;
+
     libsais_free_thread_state(thread_state);
 
     return index;
@@ -6601,6 +6607,21 @@ int32_t libsais(const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t 
     }
 
     return libsais_main(T, SA, n, 0, 0, NULL, fs, freq, 1);
+}
+
+int32_t libsais_int(int32_t * T, int32_t * SA, int32_t n, int32_t k, int32_t fs)
+{
+    if ((T == NULL) || (SA == NULL) || (n < 0) || (fs < 0))
+    {
+        return -1;
+    }
+    else if (n < 2)
+    {
+        if (n == 1) { SA[0] = 0; }
+        return 0;
+    }
+
+    return libsais_main_int(T, SA, n, k, fs, 1);
 }
 
 int32_t libsais_ctx(const void * ctx, const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq)
@@ -6757,6 +6778,23 @@ int32_t libsais_omp(const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int3
     threads = threads > 0 ? threads : omp_get_max_threads();
 
     return libsais_main(T, SA, n, 0, 0, NULL, fs, freq, threads);
+}
+
+int32_t libsais_int_omp(int32_t * T, int32_t * SA, int32_t n, int32_t k, int32_t fs, int32_t threads)
+{
+    if ((T == NULL) || (SA == NULL) || (n < 0) || (fs < 0) || (threads < 0))
+    {
+        return -1;
+    }
+    else if (n < 2)
+    {
+        if (n == 1) { SA[0] = 0; }
+        return 0;
+    }
+
+    threads = threads > 0 ? threads : omp_get_max_threads();
+
+    return libsais_main_int(T, SA, n, k, fs, threads);
 }
 
 int32_t libsais_bwt_omp(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, int32_t fs, int32_t * freq, int32_t threads)

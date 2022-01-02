@@ -5,7 +5,7 @@ The libsais is a library for fast (see [Benchmarks](#benchmarks) below) linear t
 * Nataliya Timoshevskaya, Wu-chun Feng *SAIS-OPT: On the characterization and optimization of the SA-IS algorithm for suffix array construction*, 2014
 * Jing Yi Xie, Ge Nong, Bin Lao, Wentao Xu *Scalable Suffix Sorting on a Multicore Machine*, 2020
 
-Copyright (c) 2021 Ilya Grebnov <ilya.grebnov@gmail.com>
+Copyright (c) 2021-2022 Ilya Grebnov <ilya.grebnov@gmail.com>
 
 >The libsais is inspired by [libdivsufsort](https://github.com/y-256/libdivsufsort), [sais](https://sites.google.com/site/yuta256/sais) libraries by Yuta Mori and [msufsort](https://github.com/michaelmaniscalco/msufsort) by Michael Maniscalco.
 
@@ -19,6 +19,10 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* January 1, 2022 (2.6.5)
+  * Exposed functions to construct suffix array of a given integer array.
+  * Improved detection of various compiler intrinsics.
+  * Capped free space parameter to avoid crashing due to 32-bit integer overflow.
 * October 21, 2021 (2.6.0)
   * libsais16 for 16-bit inputs.
 * October 15, 2021 (2.5.0)
@@ -36,18 +40,36 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
 * February 23, 2021 (1.0.0)
   * Initial release.
 
-## API
+## Versions of the libsais library
+* [libsais.c](src/libsais.c) (and corresponding [libsais.h](src/libsais.h)) is for suffix array, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
+  * This version of the library could also be used to construct suffix array of an integer array (with a caveat that input array must be mutable).
+* [libsais64.c](src/libsais64.c) (and corresponding [libsais64.h](src/libsais64.h)) is optional extension of the library for inputs larger or equlas to 2GB (2147483648 bytes).
+* [libsais16.c](src/libsais16.c) (and corresponding [libsais16.h](src/libsais16.h)) is independent version of the library for 16-bit inputs.
+
+## Examples of APIs (see [libsais.h](src/libsais.h), [libsais16.h](src/libsais16.h) and [libsais64.h](src/libsais64.h) for complete APIs list)
 ```c
     /**
     * Constructs the suffix array of a given string.
     * @param T [0..n-1] The input string.
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given string.
-    * @param fs Extra space available at the end of SA array (can be 0).
+    * @param fs Extra space available at the end of SA array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     int32_t libsais(const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq);
+
+    /**
+    * Constructs the suffix array of a given integer array.
+    * Note, during construction input array will be modified, but restored at the end if no errors occurred.
+    * @param T [0..n-1] The input integer array.
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the integer array.
+    * @param k The alphabet size of the input integer array.
+    * @param fs Extra space available at the end of SA array (can be 0, but 4k or better 6k is recommended for optimal performance).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    int32_t libsais_int(int32_t * T, int32_t * SA, int32_t n, int32_t k, int32_t fs);
 
     /**
     * Constructs the burrows-wheeler transformed string of a given string.
@@ -55,7 +77,7 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
-    * @param fs Extra space available at the end of A array (can be 0).
+    * @param fs Extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
@@ -67,51 +89,11 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
     * @param n The length of the given string.
-    * @param freq [0..255] The input symbol frequency table (can be NULL).
+    * @param freq [0..255] The input symbol frequency table (can be NULL).                	
     * @param i The primary index.
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     int32_t libsais_unbwt(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t i);
-
-#if defined(_OPENMP)
-    /**
-    * Constructs the suffix array of a given string in parallel using OpenMP.
-    * @param T [0..n-1] The input string.
-    * @param SA [0..n-1+fs] The output array of suffixes.
-    * @param n The length of the given string.
-    * @param fs Extra space available at the end of SA array (can be 0).
-    * @param freq [0..255] The output symbol frequency table (can be NULL).
-    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
-    * @return 0 if no error occurred, -1 or -2 otherwise.
-    */
-    int32_t libsais_omp(const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq, int32_t threads);
-
-    /**
-    * Constructs the burrows-wheeler transformed string of a given string in parallel using OpenMP.
-    * @param T [0..n-1] The input string.
-    * @param U [0..n-1] The output string (can be T).
-    * @param A [0..n-1+fs] The temporary array.
-    * @param n The length of the given string.
-    * @param fs Extra space available at the end of A array (can be 0).
-    * @param freq [0..255] The output symbol frequency table (can be NULL).
-    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
-    * @return The primary index if no error occurred, -1 or -2 otherwise.
-    */
-    int32_t libsais_bwt_omp(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, int32_t fs, int32_t * freq, int32_t threads);
-
-    /**
-    * Constructs the original string from a given burrows-wheeler transformed string with primary index in parallel using OpenMP.
-    * @param T [0..n-1] The input string.
-    * @param U [0..n-1] The output string (can be T).
-    * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
-    * @param n The length of the given string.
-    * @param freq [0..255] The input symbol frequency table (can be NULL).
-    * @param i The primary index.
-    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
-    * @return 0 if no error occurred, -1 or -2 otherwise.
-    */
-    int32_t libsais_unbwt_omp(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t i, int32_t threads);
-#endif
 ```
 
 ---
@@ -154,9 +136,7 @@ The times below are the minimum of five runs measuring **multi-threaded (MT)** p
 
 ## Additional memory
 
-The libsais reuses free space allocated for suffix array during induction. Sometimes this space might not be sufficient for most efficient algorithm and libsais will need to fallback to less efficient one (libsais has 4 algorithms at different break points). You could avoid this fallbacks and improve performance by allocating additional space at the end of suffix array.
-
-> * All other files from [Benchmarks](#benchmarks) above do not suffer from this fallbacks.
+The libsais reuses space allocated for suffix array during construction. Sometimes this free space is not sufficient for most optimal algorithm (this is uncommon) and libsais will need to fallback to less efficient one (libsais has 4 algorithms at different break-points point: 6k, 4k, 2k and 1k; where k is alphabet size). To improve performance for those cases you could allocating additional space at the end of suffix array.
 
 |  file           |    size     |     libsais + O(n)  (ST)   |     libsais + O(1) (ST)    |speedup (ST)|    libsais + O(n)  (MT)    |     libsais + O(1) (ST)    |speedup (MT)|
 |:---------------:|:-----------:|:--------------------------:|:--------------------------:|:----------:|:--------------------------:|:--------------------------:|:----------:|
@@ -166,3 +146,5 @@ The libsais reuses free space allocated for suffix array during induction. Somet
 |         ooffice |     6152192 |   0.113 sec (  54.55 MB/s) |   0.117 sec (  52.45 MB/s) |  **+4.01%**|   0.081 sec (  76.38 MB/s) |   0.088 sec (  70.30 MB/s) |  **+8.65%**|
 |            abac |      200000 |   0.002 sec (  84.36 MB/s) |   0.003 sec (  73.63 MB/s) | **+14.56%**|   0.002 sec ( 105.08 MB/s) |   0.002 sec (  86.64 MB/s) | **+21.27%**|
 |           test3 |     2097088 |   0.034 sec (  61.54 MB/s) |   0.037 sec (  56.45 MB/s) |  **+9.03%**|   0.028 sec (  75.76 MB/s) |   0.032 sec (  64.93 MB/s) | **+16.68%**|
+
+> * All other files from [Benchmarks](#benchmarks) above do not suffer from this fallbacks.

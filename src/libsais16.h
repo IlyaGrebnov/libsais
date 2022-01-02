@@ -3,7 +3,7 @@
 This file is a part of libsais, a library for linear time
 suffix array and burrows wheeler transform construction.
 
-   Copyright (c) 2021 Ilya Grebnov <ilya.grebnov@gmail.com>
+   Copyright (c) 2021-2022 Ilya Grebnov <ilya.grebnov@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ extern "C" {
     * @param T [0..n-1] The input 16-bit string.
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given 16-bit string.
-    * @param fs The extra space available at the end of SA array (can be 0).
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
     * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
@@ -70,7 +70,7 @@ extern "C" {
     * @param T [0..n-1] The input 16-bit string.
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given 16-bit string.
-    * @param fs The extra space available at the end of SA array (can be 0).
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
     * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
@@ -82,7 +82,7 @@ extern "C" {
     * @param T [0..n-1] The input 16-bit string.
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given 16-bit string.
-    * @param fs The extra space available at the end of SA array (can be 0).
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
     * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return 0 if no error occurred, -1 or -2 otherwise.
@@ -96,7 +96,7 @@ extern "C" {
     * @param U [0..n-1] The output 16-bit string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given 16-bit string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
@@ -108,7 +108,7 @@ extern "C" {
     * @param U [0..n-1] The output 16-bit string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given 16-bit string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The output auxiliary indexes.
@@ -123,7 +123,7 @@ extern "C" {
     * @param U [0..n-1] The output 16-bit string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given 16-bit string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
@@ -136,7 +136,7 @@ extern "C" {
     * @param U [0..n-1] The output 16-bit string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given 16-bit string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The output auxiliary indexes.
@@ -151,7 +151,7 @@ extern "C" {
     * @param U [0..n-1] The output 16-bit string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given 16-bit string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
@@ -164,7 +164,7 @@ extern "C" {
     * @param U [0..n-1] The output 16-bit string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given 16-bit string.
-    * @param fs The extra space available at the end of A array (can be 0).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
     * @param r The sampling rate for auxiliary indexes (must be power of 2).
     * @param I [0..(n-1)/r] The output auxiliary indexes.

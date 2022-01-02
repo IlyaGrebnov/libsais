@@ -3,7 +3,7 @@
 This file is a part of libsais, a library for linear time
 suffix array and burrows wheeler transform construction.
 
-   Copyright (c) 2021 Ilya Grebnov <ilya.grebnov@gmail.com>
+   Copyright (c) 2021-2022 Ilya Grebnov <ilya.grebnov@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
     #if __has_builtin(__builtin_prefetch)
         #define HAS_BUILTIN_PREFECTCH
     #endif
-#elif defined(__GNUC__) && __GNUC__ > 3
+#elif defined(__GNUC__) && ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 2)) || (__GNUC__ >= 4)
     #define HAS_BUILTIN_PREFECTCH
 #endif 
 
@@ -6239,6 +6239,8 @@ static void libsais16_reconstruct_compacted_lms_suffixes_32s_1k_omp(sa_sint_t * 
 
 static sa_sint_t libsais16_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t k, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
 {
+    fs = fs < (SAINT_MAX - n) ? fs : (SAINT_MAX - n);
+
     if (k > 0 && fs / k >= 6)
     {
         sa_sint_t alignment = (fs - 1024) / k >= 6 ? 1024 : 16;
@@ -6433,6 +6435,8 @@ static sa_sint_t libsais16_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT
 
 static sa_sint_t libsais16_main_16u(const uint16_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t * RESTRICT buckets, sa_sint_t bwt, sa_sint_t r, sa_sint_t * RESTRICT I, sa_sint_t fs, sa_sint_t * freq, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
 {
+    fs = fs < (SAINT_MAX - n) ? fs : (SAINT_MAX - n);
+
     sa_sint_t m = libsais16_count_and_gather_lms_suffixes_16u_omp(T, SA, n, buckets, threads, thread_state);
 
     libsais16_initialize_buckets_start_and_end_16u(buckets, freq);

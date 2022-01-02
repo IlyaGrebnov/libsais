@@ -1,6 +1,6 @@
 PROJECT=sais
 PLIBNAME=lib$(PROJECT)
-PVER=2.6.0
+PVER=2.6.5
 PSOVER=2
 ifeq ($(OS),Windows_NT)
   PLIBSTATIC=$(PROJECT).a

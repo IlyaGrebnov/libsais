@@ -1,3 +1,8 @@
+Changes in 2.6.5 (January 1, 2022)
+- Exposed functions to construct suffix array of a given integer array.
+- Improved detection of various compiler intrinsics.
+- Capped free space parameter to avoid crashing due to 32-bit integer overflow.
+
 Changes in 2.6.0 (October 21, 2021)
 - libsais16 for 16-bit inputs.
 
