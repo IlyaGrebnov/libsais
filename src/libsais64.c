@@ -6608,7 +6608,8 @@ int64_t libsais64(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_
     }
     else if (n < 2)
     {
-        if (n == 1) { SA[0] = 0; }
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int64_t)); }
+        if (n == 1) { SA[0] = 0; if (freq != NULL) { freq[T[0]]++; } }
         return 0;
     }
 
@@ -6637,7 +6638,8 @@ int64_t libsais64_bwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, in
     }
     else if (n <= 1) 
     { 
-        if (n == 1) { U[0] = T[0]; }
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int64_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
         return n; 
     }
 
@@ -6675,8 +6677,8 @@ int64_t libsais64_bwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n
     }
     else if (n <= 1) 
     { 
-        if (n == 1) { U[0] = T[0]; }
-
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int64_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
         I[0] = n;
         return 0;
     }
@@ -6717,7 +6719,8 @@ int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, in
     }
     else if (n < 2)
     {
-        if (n == 1) { SA[0] = 0; }
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int64_t)); }
+        if (n == 1) { SA[0] = 0; if (freq != NULL) { freq[T[0]]++; } }
         return 0;
     }
 
@@ -6748,7 +6751,8 @@ int64_t libsais64_bwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n
     }
     else if (n <= 1)
     {
-        if (n == 1) { U[0] = T[0]; }
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int64_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
         return n;
     }
 
@@ -6788,8 +6792,8 @@ int64_t libsais64_bwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64
     }
     else if (n <= 1)
     {
-        if (n == 1) { U[0] = T[0];}
-
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int64_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
         I[0] = n;
         return 0;
     }

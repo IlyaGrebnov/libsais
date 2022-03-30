@@ -6567,7 +6567,8 @@ int32_t libsais16(const uint16_t * T, int32_t * SA, int32_t n, int32_t fs, int32
     }
     else if (n < 2)
     {
-        if (n == 1) { SA[0] = 0; }
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int32_t)); }
+        if (n == 1) { SA[0] = 0; if (freq != NULL) { freq[T[0]]++; } }
         return 0;
     }
 
@@ -6582,7 +6583,8 @@ int32_t libsais16_ctx(const void * ctx, const uint16_t * T, int32_t * SA, int32_
     }
     else if (n < 2)
     {
-        if (n == 1) { SA[0] = 0; }
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int32_t)); }
+        if (n == 1) { SA[0] = 0; if (freq != NULL) { freq[T[0]]++; } }
         return 0;
     }
 
@@ -6596,8 +6598,9 @@ int32_t libsais16_bwt(const uint16_t * T, uint16_t * U, int32_t * A, int32_t n, 
         return -1; 
     }
     else if (n <= 1) 
-    { 
-        if (n == 1) { U[0] = T[0]; }
+    {
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int32_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
         return n; 
     }
 
@@ -6621,9 +6624,9 @@ int32_t libsais16_bwt_aux(const uint16_t * T, uint16_t * U, int32_t * A, int32_t
         return -1; 
     }
     else if (n <= 1) 
-    { 
-        if (n == 1) { U[0] = T[0]; }
-
+    {
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int32_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
         I[0] = n;
         return 0;
     }
@@ -6647,9 +6650,10 @@ int32_t libsais16_bwt_ctx(const void * ctx, const uint16_t * T, uint16_t * U, in
         return -1; 
     }
     else if (n <= 1) 
-    { 
-        if (n == 1) { U[0] = T[0]; }
-        return n; 
+    {
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int32_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
+        return n;
     }
 
     sa_sint_t index = libsais16_main_ctx((const LIBSAIS_CONTEXT *)ctx, T, A, n, 1, 0, NULL, fs, freq);
@@ -6678,9 +6682,9 @@ int32_t libsais16_bwt_aux_ctx(const void * ctx, const uint16_t * T, uint16_t * U
         return -1; 
     }
     else if (n <= 1) 
-    { 
-        if (n == 1) { U[0] = T[0]; }
-
+    {
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int32_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
         I[0] = n;
         return 0;
     }
@@ -6721,7 +6725,8 @@ int32_t libsais16_omp(const uint16_t * T, int32_t * SA, int32_t n, int32_t fs, i
     }
     else if (n < 2)
     {
-        if (n == 1) { SA[0] = 0; }
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int32_t)); }
+        if (n == 1) { SA[0] = 0; if (freq != NULL) { freq[T[0]]++; } }
         return 0;
     }
 
@@ -6738,7 +6743,8 @@ int32_t libsais16_bwt_omp(const uint16_t * T, uint16_t * U, int32_t * A, int32_t
     }
     else if (n <= 1)
     {
-        if (n == 1) { U[0] = T[0]; }
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int32_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
         return n;
     }
 
@@ -6765,8 +6771,8 @@ int32_t libsais16_bwt_aux_omp(const uint16_t * T, uint16_t * U, int32_t * A, int
     }
     else if (n <= 1)
     {
-        if (n == 1) { U[0] = T[0];}
-
+        if (freq != NULL) { memset(freq, 0, ALPHABET_SIZE * sizeof(int32_t)); }
+        if (n == 1) { U[0] = T[0]; if (freq != NULL) { freq[T[0]]++; } }
         I[0] = n;
         return 0;
     }
