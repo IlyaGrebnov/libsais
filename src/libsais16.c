@@ -1,7 +1,7 @@
 /*--
 
-This file is a part of libsais, a library for linear time
-suffix array and burrows wheeler transform construction.
+This file is a part of libsais, a library for linear time suffix array,
+longest common prefix array and burrows wheeler transform construction.
 
    Copyright (c) 2021-2022 Ilya Grebnov <ilya.grebnov@gmail.com>
 
@@ -105,7 +105,7 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
     #if __has_builtin(__builtin_prefetch)
         #define HAS_BUILTIN_PREFECTCH
     #endif
-#elif defined(__GNUC__) && ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 2)) || (__GNUC__ >= 4)
+#elif defined(__GNUC__) && (((__GNUC__ == 3) && (__GNUC_MINOR__ >= 2)) || (__GNUC__ >= 4))
     #define HAS_BUILTIN_PREFECTCH
 #endif 
 
@@ -6915,7 +6915,7 @@ static void libsais16_unbwt_init_parallel(const uint16_t * RESTRICT T, sa_uint_t
                 fast_sint_t omp_block_start         = omp_thread_num * omp_block_stride;
                 fast_sint_t omp_block_size          = omp_thread_num < omp_num_threads - 1 ? omp_block_stride : ALPHABET_SIZE - omp_block_start;
 
-                memset(bucket2 + omp_block_start, 0, omp_block_size * sizeof(sa_uint_t));
+                memset(bucket2 + omp_block_start, 0, (size_t)omp_block_size * sizeof(sa_uint_t));
 
                 fast_sint_t t;
                 for (t = 0; t < omp_num_threads; ++t, bucket2_temp += ALPHABET_SIZE)
@@ -7347,6 +7347,229 @@ int32_t libsais16_unbwt_aux_omp(const uint16_t * T, uint16_t * U, int32_t * A, i
 
     threads = threads > 0 ? threads : omp_get_max_threads();
     return libsais16_unbwt_main(T, U, (sa_uint_t *)A, n, freq, r, (const sa_uint_t *)I, threads);
+}
+
+#endif
+
+static void libsais16_compute_phi(const sa_sint_t * RESTRICT SA, sa_sint_t * RESTRICT PLCP, sa_sint_t n, fast_sint_t omp_block_start, fast_sint_t omp_block_size)
+{
+    const fast_sint_t prefetch_distance = 32;
+
+    fast_sint_t i, j; sa_sint_t k = omp_block_start > 0 ? SA[omp_block_start - 1] : n;
+    for (i = omp_block_start, j = omp_block_start + omp_block_size - prefetch_distance - 3; i < j; i += 4)
+    {
+        libsais16_prefetchw(&PLCP[SA[i + prefetch_distance + 0]]);
+        libsais16_prefetchw(&PLCP[SA[i + prefetch_distance + 1]]);
+
+        PLCP[SA[i + 0]] = k; k = SA[i + 0];
+        PLCP[SA[i + 1]] = k; k = SA[i + 1];
+
+        libsais16_prefetchw(&PLCP[SA[i + prefetch_distance + 2]]);
+        libsais16_prefetchw(&PLCP[SA[i + prefetch_distance + 3]]);
+
+        PLCP[SA[i + 2]] = k; k = SA[i + 2];
+        PLCP[SA[i + 3]] = k; k = SA[i + 3];
+    }
+
+    for (j += prefetch_distance + 3; i < j; i += 1)
+    {
+        PLCP[SA[i]] = k; k = SA[i];
+    }
+}
+
+static void libsais16_compute_phi_omp(const sa_sint_t * RESTRICT SA, sa_sint_t * RESTRICT PLCP, sa_sint_t n, sa_sint_t threads)
+{
+#if defined(_OPENMP)
+    #pragma omp parallel num_threads(threads) if(threads > 1 && n >= 65536)
+#endif
+    {
+#if defined(_OPENMP)
+        fast_sint_t omp_thread_num    = omp_get_thread_num();
+        fast_sint_t omp_num_threads   = omp_get_num_threads();
+#else
+        UNUSED(threads);
+
+        fast_sint_t omp_thread_num    = 0;
+        fast_sint_t omp_num_threads   = 1;
+#endif
+        fast_sint_t omp_block_stride  = (n / omp_num_threads) & (-16);
+        fast_sint_t omp_block_start   = omp_thread_num * omp_block_stride;
+        fast_sint_t omp_block_size    = omp_thread_num < omp_num_threads - 1 ? omp_block_stride : n - omp_block_start;
+
+        libsais16_compute_phi(SA, PLCP, n, omp_block_start, omp_block_size);
+    }
+}
+
+static void libsais16_compute_plcp(const uint16_t * RESTRICT T, sa_sint_t * RESTRICT PLCP, fast_sint_t n, fast_sint_t omp_block_start, fast_sint_t omp_block_size)
+{
+    const fast_sint_t prefetch_distance = 32;
+
+    fast_sint_t i, j, l = 0;
+    for (i = omp_block_start, j = omp_block_start + omp_block_size - prefetch_distance; i < j; i += 1)
+    {
+        libsais16_prefetch(&T[PLCP[i + prefetch_distance] + l]);
+
+        fast_sint_t k = PLCP[i], m = n - (i > k ? i : k);
+        while (l < m && T[i + l] == T[k + l]) { l++; }
+
+        PLCP[i] = (sa_sint_t)l; l -= (l != 0);
+    }
+
+    for (j += prefetch_distance; i < j; i += 1)
+    {
+        fast_sint_t k = PLCP[i], m = n - (i > k ? i : k);
+        while (l < m && T[i + l] == T[k + l]) { l++; }
+
+        PLCP[i] = (sa_sint_t)l; l -= (l != 0);
+    }
+}
+
+static void libsais16_compute_plcp_omp(const uint16_t * RESTRICT T, sa_sint_t * RESTRICT PLCP, sa_sint_t n, sa_sint_t threads)
+{
+#if defined(_OPENMP)
+    #pragma omp parallel num_threads(threads) if(threads > 1 && n >= 65536)
+#endif
+    {
+#if defined(_OPENMP)
+        fast_sint_t omp_thread_num    = omp_get_thread_num();
+        fast_sint_t omp_num_threads   = omp_get_num_threads();
+#else
+        UNUSED(threads);
+
+        fast_sint_t omp_thread_num    = 0;
+        fast_sint_t omp_num_threads   = 1;
+#endif
+        fast_sint_t omp_block_stride  = (n / omp_num_threads) & (-16);
+        fast_sint_t omp_block_start   = omp_thread_num * omp_block_stride;
+        fast_sint_t omp_block_size    = omp_thread_num < omp_num_threads - 1 ? omp_block_stride : n - omp_block_start;
+
+        libsais16_compute_plcp(T, PLCP, n, omp_block_start, omp_block_size);
+    }
+}
+
+static void libsais16_compute_lcp(const sa_sint_t * RESTRICT PLCP, const sa_sint_t * RESTRICT SA, sa_sint_t * RESTRICT LCP, fast_sint_t omp_block_start, fast_sint_t omp_block_size)
+{
+    const fast_sint_t prefetch_distance = 32;
+
+    fast_sint_t i, j;
+    for (i = omp_block_start, j = omp_block_start + omp_block_size - prefetch_distance - 3; i < j; i += 4)
+    {
+        libsais16_prefetch(&PLCP[SA[i + prefetch_distance + 0]]);
+        libsais16_prefetch(&PLCP[SA[i + prefetch_distance + 1]]);
+
+        LCP[i + 0] = PLCP[SA[i + 0]];
+        LCP[i + 1] = PLCP[SA[i + 1]];
+
+        libsais16_prefetch(&PLCP[SA[i + prefetch_distance + 2]]);
+        libsais16_prefetch(&PLCP[SA[i + prefetch_distance + 3]]);
+
+        LCP[i + 2] = PLCP[SA[i + 2]];
+        LCP[i + 3] = PLCP[SA[i + 3]];
+    }
+
+    for (j += prefetch_distance + 3; i < j; i += 1)
+    {
+        LCP[i] = PLCP[SA[i]];
+    }
+}
+
+static void libsais16_compute_lcp_omp(const sa_sint_t * RESTRICT PLCP, const sa_sint_t * RESTRICT SA, sa_sint_t * RESTRICT LCP, sa_sint_t n, sa_sint_t threads)
+{
+#if defined(_OPENMP)
+    #pragma omp parallel num_threads(threads) if(threads > 1 && n >= 65536)
+#endif
+    {
+#if defined(_OPENMP)
+        fast_sint_t omp_thread_num    = omp_get_thread_num();
+        fast_sint_t omp_num_threads   = omp_get_num_threads();
+#else
+        UNUSED(threads);
+
+        fast_sint_t omp_thread_num    = 0;
+        fast_sint_t omp_num_threads   = 1;
+#endif
+        fast_sint_t omp_block_stride  = (n / omp_num_threads) & (-16);
+        fast_sint_t omp_block_start   = omp_thread_num * omp_block_stride;
+        fast_sint_t omp_block_size    = omp_thread_num < omp_num_threads - 1 ? omp_block_stride : n - omp_block_start;
+
+        libsais16_compute_lcp(PLCP, SA, LCP, omp_block_start, omp_block_size);
+    }
+}
+
+int32_t libsais16_plcp(const uint16_t * T, const int32_t * SA, int32_t * PLCP, int32_t n)
+{
+    if ((T == NULL) || (SA == NULL) || (PLCP == NULL) || (n < 0))
+    {
+        return -1;
+    }
+    else if (n <= 1)
+    {
+        if (n == 1) { PLCP[0] = 0; }
+        return 0;
+    }
+
+    libsais16_compute_phi_omp(SA, PLCP, n, 1);
+    libsais16_compute_plcp_omp(T, PLCP, n, 1);
+
+    return 0;
+}
+
+int32_t libsais16_lcp(const int32_t * PLCP, const int32_t * SA, int32_t * LCP, int32_t n)
+{
+    if ((PLCP == NULL) || (SA == NULL) || (LCP == NULL) || (n < 0))
+    {
+        return -1;
+    }
+    else if (n <= 1)
+    {
+        if (n == 1) { LCP[0] = PLCP[SA[0]]; }
+        return 0;
+    }
+
+    libsais16_compute_lcp_omp(PLCP, SA, LCP, n, 1);
+
+    return 0;
+}
+
+#if defined(_OPENMP)
+
+int32_t libsais16_plcp_omp(const uint16_t * T, const int32_t * SA, int32_t * PLCP, int32_t n, int32_t threads)
+{
+    if ((T == NULL) || (SA == NULL) || (PLCP == NULL) || (n < 0) || (threads < 0))
+    {
+        return -1;
+    }
+    else if (n <= 1)
+    {
+        if (n == 1) { PLCP[0] = 0; }
+        return 0;
+    }
+    
+    threads = threads > 0 ? threads : omp_get_max_threads();
+
+    libsais16_compute_phi_omp(SA, PLCP, n, threads);
+    libsais16_compute_plcp_omp(T, PLCP, n, threads);
+
+    return 0;
+}
+
+int32_t libsais16_lcp_omp(const int32_t * PLCP, const int32_t * SA, int32_t * LCP, int32_t n, int32_t threads)
+{
+    if ((PLCP == NULL) || (SA == NULL) || (LCP == NULL) || (n < 0) || (threads < 0))
+    {
+        return -1;
+    }
+    else if (n <= 1)
+    {
+        if (n == 1) { LCP[0] = PLCP[SA[0]]; }
+        return 0;
+    }
+
+    threads = threads > 0 ? threads : omp_get_max_threads();
+
+    libsais16_compute_lcp_omp(PLCP, SA, LCP, n, threads);
+
+    return 0;
 }
 
 #endif

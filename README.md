@@ -1,7 +1,8 @@
 # libsais
 
-The libsais is a library for fast (see [Benchmarks](#benchmarks) below) linear time suffix array and Burrows-Wheeler transform construction based on induced sorting algorithm described in the following papers: 
-* Ge Nong, Sen Zhang and Wai Hong Chan *Two Efficient Algorithms for Linear Suffix Array Construction*, 2008
+The libsais is a library for fast (see [Benchmarks](#benchmarks) below) linear time suffix array, longest common prefix array and Burrows-Wheeler transform construction based on induced sorting algorithm described in the following papers: 
+* Ge Nong, Sen Zhang, Wai Hong Chan *Two Efficient Algorithms for Linear Suffix Array Construction*, 2008
+* Juha Karkkainen, Giovanni Manzini, Simon J. Puglisi *Permuted Longest-Common-Prefix Array*, 2009
 * Nataliya Timoshevskaya, Wu-chun Feng *SAIS-OPT: On the characterization and optimization of the SA-IS algorithm for suffix array construction*, 2014
 * Jing Yi Xie, Ge Nong, Bin Lao, Wentao Xu *Scalable Suffix Sorting on a Multicore Machine*, 2020
 
@@ -19,6 +20,8 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* April 12, 2022 (2.7.0)
+  * Support for longest common prefix array (LCP) construction.
 * January 1, 2022 (2.6.5)
   * Exposed functions to construct suffix array of a given integer array.
   * Improved detection of various compiler intrinsics.
@@ -41,7 +44,7 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
   * Initial release.
 
 ## Versions of the libsais library
-* [libsais.c](src/libsais.c) (and corresponding [libsais.h](src/libsais.h)) is for suffix array, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
+* [libsais.c](src/libsais.c) (and corresponding [libsais.h](src/libsais.h)) is for suffix array, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
   * This version of the library could also be used to construct suffix array of an integer array (with a caveat that input array must be mutable).
 * [libsais64.c](src/libsais64.c) (and corresponding [libsais64.h](src/libsais64.h)) is optional extension of the library for inputs larger or equlas to 2GB (2147483648 bytes).
 * [libsais16.c](src/libsais16.c) (and corresponding [libsais16.h](src/libsais16.h)) is independent version of the library for 16-bit inputs.
