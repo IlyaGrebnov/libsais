@@ -24,6 +24,11 @@ Please see the file LICENSE for full copyright information.
 #ifndef LIBSAIS16_H
 #define LIBSAIS16_H 1
 
+#define LIBSAIS16_VERSION_MAJOR   2
+#define LIBSAIS16_VERSION_MINOR   7
+#define LIBSAIS16_VERSION_PATCH   1
+#define LIBSAIS16_VERSION_STRING  "2.7.1"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
