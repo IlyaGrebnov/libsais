@@ -48,12 +48,12 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
   * Initial release.
 
 ## Versions of the libsais library
-* [libsais.c](src/libsais.c) (and corresponding [libsais.h](src/libsais.h)) is for suffix array, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
+* [libsais.c](libsais.c) (and corresponding [libsais.h](libsais.h)) is for suffix array, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
   * This version of the library could also be used to construct suffix array of an integer array (with a caveat that input array must be mutable).
-* [libsais64.c](src/libsais64.c) (and corresponding [libsais64.h](src/libsais64.h)) is optional extension of the library for inputs larger or equlas to 2GB (2147483648 bytes).
-* [libsais16.c](src/libsais16.c) (and corresponding [libsais16.h](src/libsais16.h)) is independent version of the library for 16-bit inputs.
+* [libsais64.c](libsais64.c) (and corresponding [libsais64.h](libsais64.h)) is optional extension of the library for inputs larger or equlas to 2GB (2147483648 bytes).
+* [libsais16.c](libsais16.c) (and corresponding [libsais16.h](libsais16.h)) is independent version of the library for 16-bit inputs.
 
-## Examples of APIs (see [libsais.h](src/libsais.h), [libsais16.h](src/libsais16.h) and [libsais64.h](src/libsais64.h) for complete APIs list)
+## Examples of APIs (see [libsais.h](libsais.h), [libsais16.h](libsais16.h) and [libsais64.h](libsais64.h) for complete APIs list)
 ```c
     /**
     * Constructs the suffix array of a given string.
