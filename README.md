@@ -20,8 +20,10 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* April 21, 2023 (2.7.3)
+  * CMake script for library build and integration with other projects.
 * April 18, 2023 (2.7.2)
-  *  Fixed out-of-bound memory access issue for large inputs (libsais64).
+  * Fixed out-of-bound memory access issue for large inputs (libsais64).
 * June 19, 2022 (2.7.1)
   * Improved cache coherence for ARMv8 architecture.
 * April 12, 2022 (2.7.0)
@@ -48,12 +50,12 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
   * Initial release.
 
 ## Versions of the libsais library
-* [libsais.c](libsais.c) (and corresponding [libsais.h](libsais.h)) is for suffix array, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
+* [libsais.c](src/libsais.c) (and corresponding [libsais.h](include/libsais.h)) is for suffix array, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
   * This version of the library could also be used to construct suffix array of an integer array (with a caveat that input array must be mutable).
-* [libsais64.c](libsais64.c) (and corresponding [libsais64.h](libsais64.h)) is optional extension of the library for inputs larger or equlas to 2GB (2147483648 bytes).
-* [libsais16.c](libsais16.c) (and corresponding [libsais16.h](libsais16.h)) is independent version of the library for 16-bit inputs.
+* [libsais64.c](src/libsais64.c) (and corresponding [libsais64.h](include/libsais64.h)) is optional extension of the library for inputs larger or equlas to 2GB (2147483648 bytes).
+* [libsais16.c](src/libsais16.c) (and corresponding [libsais16.h](include/libsais16.h)) is independent version of the library for 16-bit inputs.
 
-## Examples of APIs (see [libsais.h](libsais.h), [libsais16.h](libsais16.h) and [libsais64.h](libsais64.h) for complete APIs list)
+## Examples of APIs (see [libsais.h](include/libsais.h), [libsais16.h](include/libsais16.h) and [libsais64.h](include/libsais64.h) for complete APIs list)
 ```c
     /**
     * Constructs the suffix array of a given string.
@@ -101,6 +103,20 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     int32_t libsais_unbwt(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t i);
+```
+
+## Example installation using [CPM](https://github.com/cpm-cmake/CPM.cmake)
+```cmake
+CPMAddPackage(
+  NAME libsais
+  GITHUB_REPOSITORY IlyaGrebnov/libsais
+  GIT_TAG v2.7.3
+  OPTIONS
+    "LIBSAIS_USE_OPENMP OFF"
+    "LIBSAIS_BUILD_SHARED_LIB OFF"
+)
+
+target_link_libraries(<your target> libsais)
 ```
 
 ---
