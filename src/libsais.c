@@ -3,7 +3,7 @@
 This file is a part of libsais, a library for linear time suffix array,
 longest common prefix array and burrows wheeler transform construction.
 
-   Copyright (c) 2021-2022 Ilya Grebnov <ilya.grebnov@gmail.com>
+   Copyright (c) 2021-2024 Ilya Grebnov <ilya.grebnov@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ typedef size_t                          fast_uint_t;
 #define BUCKETS_INDEX2(_c, _s)          (((_c) << 1) + (_s))
 #define BUCKETS_INDEX4(_c, _s)          (((_c) << 2) + (_s))
 
+#define LIBSAIS_LOCAL_BUFFER_SIZE       (1024)
 #define LIBSAIS_PER_THREAD_CACHE_SIZE   (24576)
 
 typedef struct LIBSAIS_THREAD_CACHE
@@ -232,7 +233,7 @@ static void libsais_free_thread_state(LIBSAIS_THREAD_STATE * thread_state)
 static LIBSAIS_CONTEXT * libsais_create_ctx_main(sa_sint_t threads)
 {
     LIBSAIS_CONTEXT *       RESTRICT ctx            = (LIBSAIS_CONTEXT *)libsais_alloc_aligned(sizeof(LIBSAIS_CONTEXT), 64);
-    sa_sint_t *             RESTRICT buckets        = (sa_sint_t *)libsais_alloc_aligned(8 * ALPHABET_SIZE * sizeof(sa_sint_t), 4096);
+    sa_sint_t *             RESTRICT buckets        = (sa_sint_t *)libsais_alloc_aligned((size_t)8 * ALPHABET_SIZE * sizeof(sa_sint_t), 4096);
     LIBSAIS_THREAD_STATE *  RESTRICT thread_state   = threads > 1 ? libsais_alloc_thread_state(threads) : NULL;
 
     if (ctx != NULL && buckets != NULL && (thread_state != NULL || threads == 1))
@@ -691,7 +692,7 @@ static void libsais_count_compacted_lms_suffixes_32s_2k(const sa_sint_t * RESTRI
 
 static sa_sint_t libsais_count_and_gather_lms_suffixes_8u(const uint8_t * RESTRICT T, sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t * RESTRICT buckets, fast_sint_t omp_block_start, fast_sint_t omp_block_size)
 {
-    memset(buckets, 0, 4 * ALPHABET_SIZE * sizeof(sa_sint_t));
+    memset(buckets, 0, (size_t)4 * ALPHABET_SIZE * sizeof(sa_sint_t));
 
     fast_sint_t m = omp_block_start + omp_block_size - 1;
 
@@ -777,7 +778,7 @@ static sa_sint_t libsais_count_and_gather_lms_suffixes_8u_omp(const uint8_t * RE
 
             #pragma omp master
             {
-                memset(buckets, 0, 4 * ALPHABET_SIZE * sizeof(sa_sint_t));
+                memset(buckets, 0, (size_t)4 * ALPHABET_SIZE * sizeof(sa_sint_t));
 
                 fast_sint_t t;
                 for (t = omp_num_threads - 1; t >= 0; --t)
@@ -2144,7 +2145,7 @@ static void libsais_partial_sorting_scan_left_to_right_8u_block_prepare(const ui
     sa_sint_t * RESTRICT induction_bucket = &buckets[0 * ALPHABET_SIZE];
     sa_sint_t * RESTRICT distinct_names   = &buckets[2 * ALPHABET_SIZE];
 
-    memset(buckets, 0, 4 * ALPHABET_SIZE * sizeof(sa_sint_t));
+    memset(buckets, 0, (size_t)4 * ALPHABET_SIZE * sizeof(sa_sint_t));
 
     fast_sint_t i, j, count = 0; sa_sint_t d = 1;
     for (i = omp_block_start, j = omp_block_start + omp_block_size - prefetch_distance - 1; i < j; i += 2)
@@ -2975,7 +2976,7 @@ static void libsais_partial_sorting_scan_right_to_left_8u_block_prepare(const ui
     sa_sint_t * RESTRICT induction_bucket = &buckets[0 * ALPHABET_SIZE];
     sa_sint_t * RESTRICT distinct_names   = &buckets[2 * ALPHABET_SIZE];
 
-    memset(buckets, 0, 4 * ALPHABET_SIZE * sizeof(sa_sint_t));
+    memset(buckets, 0, (size_t)4 * ALPHABET_SIZE * sizeof(sa_sint_t));
 
     fast_sint_t i, j, count = 0; sa_sint_t d = 1;
     for (i = omp_block_start + omp_block_size - 1, j = omp_block_start + prefetch_distance + 1; i >= j; i -= 2)
@@ -3805,7 +3806,7 @@ static void libsais_partial_sorting_gather_lms_suffixes_32s_1k_omp(sa_sint_t * R
 
 static void libsais_induce_partial_order_8u_omp(const uint8_t * RESTRICT T, sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t * RESTRICT buckets, sa_sint_t first_lms_suffix, sa_sint_t left_suffixes_count, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
 {
-    memset(&buckets[2 * ALPHABET_SIZE], 0, 2 * ALPHABET_SIZE * sizeof(sa_sint_t));
+    memset(&buckets[2 * ALPHABET_SIZE], 0, (size_t)2 * ALPHABET_SIZE * sizeof(sa_sint_t));
 
     sa_sint_t d = libsais_partial_sorting_scan_left_to_right_8u_omp(T, SA, n, buckets, left_suffixes_count, 0, threads, thread_state);
     libsais_partial_sorting_shift_markers_8u_omp(SA, n, buckets, threads);
@@ -6259,14 +6260,15 @@ static void libsais_reconstruct_compacted_lms_suffixes_32s_1k_omp(sa_sint_t * RE
     }
 }
 
-static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t k, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
+static sa_sint_t libsais_main_32s_recursion(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t k, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state, sa_sint_t * RESTRICT local_buffer)
 {
     fs = fs < (SAINT_MAX - n) ? fs : (SAINT_MAX - n);
 
-    if (k > 0 && fs / k >= 6)
+    if (k > 0 && ((fs / k >= 6) || (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 6)))
     {
-        sa_sint_t alignment = (fs - 1024) / k >= 6 ? 1024 : 16;
+        sa_sint_t alignment = (fs - 1024) / k >= 6 ? (sa_sint_t)1024 : (sa_sint_t)16;
         sa_sint_t * RESTRICT buckets = (fs - alignment) / k >= 6 ? (sa_sint_t *)libsais_align_up(&SA[n + fs - 6 * (fast_sint_t)k - alignment], (size_t)alignment * sizeof(sa_sint_t)) : &SA[n + fs - 6 * (fast_sint_t)k];
+        buckets = (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 6) ? local_buffer : buckets;
 
         sa_sint_t m = libsais_count_and_gather_lms_suffixes_32s_4k_omp(T, SA, n, k, buckets, threads, thread_state);
         if (m > 1)
@@ -6289,7 +6291,7 @@ static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT S
             {
                 sa_sint_t f = libsais_compact_lms_suffixes_32s_omp(T, SA, n, m, fs, threads, thread_state);
 
-                if (libsais_main_32s(SA + n + fs - m + f, SA, m - f, names - f, fs + n - 2 * m + f, threads, thread_state) != 0)
+                if (libsais_main_32s_recursion(SA + n + fs - m + f, SA, m - f, names - f, fs + n - 2 * m + f, threads, thread_state, local_buffer) != 0)
                 {
                     return -2;
                 }
@@ -6316,10 +6318,11 @@ static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT S
 
         return 0;
     }
-    else if (k > 0 && fs / k >= 4)
+    else if (k > 0 && ((fs / k >= 4) || (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 4)))
     {
-        sa_sint_t alignment = (fs - 1024) / k >= 4 ? 1024 : 16;
+        sa_sint_t alignment = (fs - 1024) / k >= 4 ? (sa_sint_t)1024 : (sa_sint_t)16;
         sa_sint_t * RESTRICT buckets = (fs - alignment) / k >= 4 ? (sa_sint_t *)libsais_align_up(&SA[n + fs - 4 * (fast_sint_t)k - alignment], (size_t)alignment * sizeof(sa_sint_t)) : &SA[n + fs - 4 * (fast_sint_t)k];
+        buckets = (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 4) ? local_buffer : buckets;
 
         sa_sint_t m = libsais_count_and_gather_lms_suffixes_32s_2k_omp(T, SA, n, k, buckets, threads, thread_state);
         if (m > 1)
@@ -6337,7 +6340,7 @@ static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT S
             {
                 sa_sint_t f = libsais_compact_lms_suffixes_32s_omp(T, SA, n, m, fs, threads, thread_state);
 
-                if (libsais_main_32s(SA + n + fs - m + f, SA, m - f, names - f, fs + n - 2 * m + f, threads, thread_state) != 0)
+                if (libsais_main_32s_recursion(SA + n + fs - m + f, SA, m - f, names - f, fs + n - 2 * m + f, threads, thread_state, local_buffer) != 0)
                 {
                     return -2;
                 }
@@ -6360,10 +6363,11 @@ static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT S
 
         return 0;
     }
-    else if (k > 0 && fs / k >= 2)
+    else if (k > 0 && ((fs / k >= 2) || (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 2)))
     {
-        sa_sint_t alignment = (fs - 1024) / k >= 2 ? 1024 : 16;
+        sa_sint_t alignment = (fs - 1024) / k >= 2 ? (sa_sint_t)1024 : (sa_sint_t)16;
         sa_sint_t * RESTRICT buckets = (fs - alignment) / k >= 2 ? (sa_sint_t *)libsais_align_up(&SA[n + fs - 2 * (fast_sint_t)k - alignment], (size_t)alignment * sizeof(sa_sint_t)) : &SA[n + fs - 2 * (fast_sint_t)k];
+        buckets = (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 2) ? local_buffer : buckets;
 
         sa_sint_t m = libsais_count_and_gather_lms_suffixes_32s_2k_omp(T, SA, n, k, buckets, threads, thread_state);
         if (m > 1)
@@ -6381,7 +6385,7 @@ static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT S
             {
                 sa_sint_t f = libsais_compact_lms_suffixes_32s_omp(T, SA, n, m, fs, threads, thread_state);
 
-                if (libsais_main_32s(SA + n + fs - m + f, SA, m - f, names - f, fs + n - 2 * m + f, threads, thread_state) != 0)
+                if (libsais_main_32s_recursion(SA + n + fs - m + f, SA, m - f, names - f, fs + n - 2 * m + f, threads, thread_state, local_buffer) != 0)
                 {
                     return -2;
                 }
@@ -6410,7 +6414,7 @@ static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT S
     {
         sa_sint_t * buffer = fs < k ? (sa_sint_t *)libsais_alloc_aligned((size_t)k * sizeof(sa_sint_t), 4096) : (sa_sint_t *)NULL;
 
-        sa_sint_t alignment = fs - 1024 >= k ? 1024 : 16;
+        sa_sint_t alignment = fs - 1024 >= k ? (sa_sint_t)1024 : (sa_sint_t)16;
         sa_sint_t * RESTRICT buckets = fs - alignment >= k ? (sa_sint_t *)libsais_align_up(&SA[n + fs - k - alignment], (size_t)alignment * sizeof(sa_sint_t)) : fs >= k ? &SA[n + fs - k] : buffer;
 
         if (buckets == NULL) { return -2; }
@@ -6432,7 +6436,7 @@ static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT S
 
                 sa_sint_t f = libsais_compact_lms_suffixes_32s_omp(T, SA, n, m, fs, threads, thread_state);
 
-                if (libsais_main_32s(SA + n + fs - m + f, SA, m - f, names - f, fs + n - 2 * m + f, threads, thread_state) != 0)
+                if (libsais_main_32s_recursion(SA + n + fs - m + f, SA, m - f, names - f, fs + n - 2 * m + f, threads, thread_state, local_buffer) != 0)
                 {
                     return -2;
                 }
@@ -6453,6 +6457,13 @@ static sa_sint_t libsais_main_32s(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT S
 
         return 0;
     }
+}
+
+static sa_sint_t libsais_main_32s_entry(sa_sint_t * RESTRICT T, sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t k, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
+{
+    sa_sint_t local_buffer[LIBSAIS_LOCAL_BUFFER_SIZE];
+
+    return libsais_main_32s_recursion(T, SA, n, k, fs, threads, thread_state, local_buffer);
 }
 
 static sa_sint_t libsais_main_8u(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t * RESTRICT buckets, sa_sint_t bwt, sa_sint_t r, sa_sint_t * RESTRICT I, sa_sint_t fs, sa_sint_t * freq, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
@@ -6478,7 +6489,7 @@ static sa_sint_t libsais_main_8u(const uint8_t * T, sa_sint_t * SA, sa_sint_t n,
         sa_sint_t names = libsais_renumber_and_gather_lms_suffixes_8u_omp(SA, n, m, fs, threads, thread_state);
         if (names < m)
         {
-            if (libsais_main_32s(SA + n + fs - m, SA, m, names, fs + n - 2 * m, threads, thread_state) != 0)
+            if (libsais_main_32s_entry(SA + n + fs - m, SA, m, names, fs + n - 2 * m, threads, thread_state) != 0)
             {
                 return -2;
             }
@@ -6500,7 +6511,7 @@ static sa_sint_t libsais_main_8u(const uint8_t * T, sa_sint_t * SA, sa_sint_t n,
 static sa_sint_t libsais_main(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t bwt, sa_sint_t r, sa_sint_t * I, sa_sint_t fs, sa_sint_t * freq, sa_sint_t threads)
 {
     LIBSAIS_THREAD_STATE *  RESTRICT thread_state   = threads > 1 ? libsais_alloc_thread_state(threads) : NULL;
-    sa_sint_t *             RESTRICT buckets        = (sa_sint_t *)libsais_alloc_aligned(8 * ALPHABET_SIZE * sizeof(sa_sint_t), 4096);
+    sa_sint_t *             RESTRICT buckets        = (sa_sint_t *)libsais_alloc_aligned((size_t)8 * ALPHABET_SIZE * sizeof(sa_sint_t), 4096);
 
     sa_sint_t index = buckets != NULL && (thread_state != NULL || threads == 1)
         ? libsais_main_8u(T, SA, n, buckets, bwt, r, I, fs, freq, threads, thread_state)
@@ -6517,7 +6528,7 @@ static int32_t libsais_main_int(sa_sint_t * T, sa_sint_t * SA, sa_sint_t n, sa_s
     LIBSAIS_THREAD_STATE * RESTRICT thread_state = threads > 1 ? libsais_alloc_thread_state(threads) : NULL;
 
     sa_sint_t index = thread_state != NULL || threads == 1
-        ? libsais_main_32s(T, SA, n, k, fs, threads, thread_state)
+        ? libsais_main_32s_entry(T, SA, n, k, fs, threads, thread_state)
         : -2;
 
     libsais_free_thread_state(thread_state);
@@ -6906,7 +6917,7 @@ static void libsais_unbwt_compute_histogram(const uint8_t * RESTRICT T, fast_sin
     {
         sa_uint_t copy[4 * (ALPHABET_SIZE + 16)];
 
-        memset(copy, 0, 4 * (ALPHABET_SIZE + 16) * sizeof(sa_uint_t));
+        memset(copy, 0, (size_t)4 * (ALPHABET_SIZE + 16) * sizeof(sa_uint_t));
 
         sa_uint_t * RESTRICT copy0 = copy + 0 * (ALPHABET_SIZE + 16);
         sa_uint_t * RESTRICT copy1 = copy + 1 * (ALPHABET_SIZE + 16);
@@ -7090,7 +7101,7 @@ static void libsais_unbwt_init_single(const uint8_t * RESTRICT T, sa_uint_t * RE
 
     fast_uint_t index = I[0];
     fast_uint_t lastc = T[0];
-    fast_uint_t shift = 0; while ((n >> shift) > (1 << UNBWT_FASTBITS)) { shift++; }
+    fast_uint_t shift = 0; while ((n >> shift) > ((sa_sint_t)1 << UNBWT_FASTBITS)) { shift++; }
 
     if (freq != NULL)
     {
@@ -7134,7 +7145,7 @@ static void libsais_unbwt_init_parallel(const uint8_t * RESTRICT T, sa_uint_t * 
 
     fast_uint_t index = I[0];
     fast_uint_t lastc = T[0];
-    fast_uint_t shift = 0; while ((n >> shift) > (1 << UNBWT_FASTBITS)) { shift++; }
+    fast_uint_t shift = 0; while ((n >> shift) > ((sa_sint_t)1 << UNBWT_FASTBITS)) { shift++; }
 
     memset(bucket1, 0, ALPHABET_SIZE * sizeof(sa_uint_t));
     memset(bucket2, 0, ALPHABET_SIZE * ALPHABET_SIZE * sizeof(sa_uint_t));
@@ -7418,7 +7429,7 @@ static void libsais_unbwt_decode_8(uint8_t * RESTRICT U, sa_uint_t * RESTRICT P,
 
 static void libsais_unbwt_decode(uint8_t * RESTRICT U, sa_uint_t * RESTRICT P, sa_sint_t n, sa_sint_t r, const sa_uint_t * RESTRICT I, sa_uint_t * RESTRICT bucket2, uint16_t * RESTRICT fastbits, fast_sint_t blocks, fast_uint_t remainder)
 {
-    fast_uint_t shift       = 0; while ((n >> shift) > (1 << UNBWT_FASTBITS)) { shift++; }
+    fast_uint_t shift       = 0; while ((n >> shift) > ((sa_sint_t)1 << UNBWT_FASTBITS)) { shift++; }
     fast_uint_t offset      = 0;
 
     while (blocks > 8)
@@ -7530,7 +7541,7 @@ static sa_sint_t libsais_unbwt_core(const uint8_t * RESTRICT T, uint8_t * RESTRI
 
 static sa_sint_t libsais_unbwt_main(const uint8_t * T, uint8_t * U, sa_uint_t * P, sa_sint_t n, const sa_sint_t * freq, sa_sint_t r, const sa_uint_t * I, sa_sint_t threads)
 {
-    fast_uint_t shift = 0; while ((n >> shift) > (1 << UNBWT_FASTBITS)) { shift++; }
+    fast_uint_t shift = 0; while ((n >> shift) > ((sa_sint_t)1 << UNBWT_FASTBITS)) { shift++; }
 
     sa_uint_t *     RESTRICT bucket2        = (sa_uint_t *)libsais_alloc_aligned(ALPHABET_SIZE * ALPHABET_SIZE * sizeof(sa_uint_t), 4096);
     uint16_t *      RESTRICT fastbits       = (uint16_t *)libsais_alloc_aligned(((size_t)1 + (size_t)(n >> shift)) * sizeof(uint16_t), 4096);

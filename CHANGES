@@ -1,3 +1,7 @@
+Changes in 2.7.4 (February 23, 2024)
+- Improved performance of suffix array and burrows wheeler transform construction on degenerate inputs.
+- Resolved strict aliasing violation resulted in invalid code generation by Intel compiler.
+
 Changes in 2.7.3 (April 21, 2023)
 - CMake script for library build and integration with other projects.
 

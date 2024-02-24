@@ -3,7 +3,7 @@
 This file is a part of libsais, a library for linear time suffix array,
 longest common prefix array and burrows wheeler transform construction.
 
-   Copyright (c) 2021-2022 Ilya Grebnov <ilya.grebnov@gmail.com>
+   Copyright (c) 2021-2024 Ilya Grebnov <ilya.grebnov@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ Please see the file LICENSE for full copyright information.
 
 #define LIBSAIS_VERSION_MAJOR   2
 #define LIBSAIS_VERSION_MINOR   7
-#define LIBSAIS_VERSION_PATCH   3
-#define LIBSAIS_VERSION_STRING  "2.7.3"
+#define LIBSAIS_VERSION_PATCH   4
+#define LIBSAIS_VERSION_STRING  "2.7.4"
 
 #ifdef _WIN32
     #ifdef LIBSAIS_SHARED

@@ -6,7 +6,7 @@ The libsais is a library for fast (see [Benchmarks](#benchmarks) below) linear t
 * Nataliya Timoshevskaya, Wu-chun Feng *SAIS-OPT: On the characterization and optimization of the SA-IS algorithm for suffix array construction*, 2014
 * Jing Yi Xie, Ge Nong, Bin Lao, Wentao Xu *Scalable Suffix Sorting on a Multicore Machine*, 2020
 
-Copyright (c) 2021-2022 Ilya Grebnov <ilya.grebnov@gmail.com>
+Copyright (c) 2021-2024 Ilya Grebnov <ilya.grebnov@gmail.com>
 
 >The libsais is inspired by [libdivsufsort](https://github.com/y-256/libdivsufsort), [sais](https://sites.google.com/site/yuta256/sais) libraries by Yuta Mori and [msufsort](https://github.com/michaelmaniscalco/msufsort) by Michael Maniscalco.
 
@@ -23,6 +23,9 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* February 23, 2024 (2.7.4)
+  * Improved performance of suffix array and burrows wheeler transform construction on degenerate inputs.
+  * Resolved strict aliasing violation resulted in invalid code generation by Intel compiler.
 * April 21, 2023 (2.7.3)
   * CMake script for library build and integration with other projects.
 * April 18, 2023 (2.7.2)
