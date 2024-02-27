@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(libsais VERSION 2.7.4 LANGUAGES C DESCRIPTION "libsais is a library for linear time suffix array, longest common prefix array and burrows wheeler transform construction based on induced sorting algorithm.")
+project(libsais VERSION 2.7.5 LANGUAGES C DESCRIPTION "libsais is a library for linear time suffix array, longest common prefix array and burrows wheeler transform construction based on induced sorting algorithm.")
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)

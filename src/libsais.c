@@ -3881,7 +3881,7 @@ static sa_sint_t libsais_renumber_lms_suffixes_8u(sa_sint_t * RESTRICT SA, sa_si
     return name;
 }
 
-static fast_sint_t libsais_gather_marked_suffixes_8u(sa_sint_t * RESTRICT SA, sa_sint_t m, fast_sint_t l, fast_sint_t omp_block_start, fast_sint_t omp_block_size)
+static fast_sint_t libsais_gather_marked_lms_suffixes(sa_sint_t * RESTRICT SA, sa_sint_t m, fast_sint_t l, fast_sint_t omp_block_start, fast_sint_t omp_block_size)
 {
     const fast_sint_t prefetch_distance = 32;
 
@@ -3959,7 +3959,7 @@ static sa_sint_t libsais_renumber_lms_suffixes_8u_omp(sa_sint_t * RESTRICT SA, s
     return name;
 }
 
-static void libsais_gather_marked_lms_suffixes_8u_omp(sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t m, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
+static void libsais_gather_marked_lms_suffixes_omp(sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t m, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
 {
 #if defined(LIBSAIS_OPENMP)
     #pragma omp parallel num_threads(threads) if(threads > 1 && n >= 131072)
@@ -3980,7 +3980,7 @@ static void libsais_gather_marked_lms_suffixes_8u_omp(sa_sint_t * RESTRICT SA, s
 
         if (omp_num_threads == 1)
         {
-            libsais_gather_marked_suffixes_8u(SA, m, (fast_sint_t)n + (fast_sint_t)fs, omp_block_start, omp_block_size);
+            libsais_gather_marked_lms_suffixes(SA, m, (fast_sint_t)n + (fast_sint_t)fs, omp_block_start, omp_block_size);
         }
 #if defined(LIBSAIS_OPENMP)
         else
@@ -3988,12 +3988,12 @@ static void libsais_gather_marked_lms_suffixes_8u_omp(sa_sint_t * RESTRICT SA, s
             {
                 if (omp_thread_num < omp_num_threads - 1)
                 {
-                    thread_state[omp_thread_num].state.position = libsais_gather_marked_suffixes_8u(SA, m, (fast_sint_t)m + omp_block_start + omp_block_size, omp_block_start, omp_block_size);
+                    thread_state[omp_thread_num].state.position = libsais_gather_marked_lms_suffixes(SA, m, (fast_sint_t)m + omp_block_start + omp_block_size, omp_block_start, omp_block_size);
                     thread_state[omp_thread_num].state.count = (fast_sint_t)m + omp_block_start + omp_block_size - thread_state[omp_thread_num].state.position;
                 }
                 else
                 {
-                    thread_state[omp_thread_num].state.position = libsais_gather_marked_suffixes_8u(SA, m, (fast_sint_t)n + (fast_sint_t)fs, omp_block_start, omp_block_size);
+                    thread_state[omp_thread_num].state.position = libsais_gather_marked_lms_suffixes(SA, m, (fast_sint_t)n + (fast_sint_t)fs, omp_block_start, omp_block_size);
                     thread_state[omp_thread_num].state.count = (fast_sint_t)n + (fast_sint_t)fs - thread_state[omp_thread_num].state.position;
                 }
             }
@@ -4018,14 +4018,14 @@ static void libsais_gather_marked_lms_suffixes_8u_omp(sa_sint_t * RESTRICT SA, s
     }
 }
 
-static sa_sint_t libsais_renumber_and_gather_lms_suffixes_8u_omp(sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t m, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
+static sa_sint_t libsais_renumber_and_gather_lms_suffixes_omp(sa_sint_t * RESTRICT SA, sa_sint_t n, sa_sint_t m, sa_sint_t fs, sa_sint_t threads, LIBSAIS_THREAD_STATE * RESTRICT thread_state)
 {
     memset(&SA[m], 0, ((size_t)n >> 1) * sizeof(sa_sint_t));
 
     sa_sint_t name = libsais_renumber_lms_suffixes_8u_omp(SA, m, threads, thread_state);
     if (name < m)
     {
-        libsais_gather_marked_lms_suffixes_8u_omp(SA, n, m, fs, threads, thread_state);
+        libsais_gather_marked_lms_suffixes_omp(SA, n, m, fs, threads, thread_state);
     }
     else
     {
@@ -6279,17 +6279,22 @@ static sa_sint_t libsais_main_32s_recursion(sa_sint_t * RESTRICT T, sa_sint_t * 
             sa_sint_t left_suffixes_count = libsais_initialize_buckets_for_lms_suffixes_radix_sort_32s_6k(T, k, buckets, first_lms_suffix);
 
             libsais_radix_sort_lms_suffixes_32s_6k_omp(T, SA, n, m, &buckets[4 * (fast_sint_t)k], threads, thread_state);
-            libsais_radix_sort_set_markers_32s_6k_omp(SA, k, &buckets[4 * (fast_sint_t)k], threads);
 
+            if ((n / 8192) < k) { libsais_radix_sort_set_markers_32s_6k_omp(SA, k, &buckets[4 * (fast_sint_t)k], threads); }
             if (threads > 1 && n >= 65536) { memset(&SA[(fast_sint_t)n - (fast_sint_t)m], 0, (size_t)m * sizeof(sa_sint_t)); }
 
             libsais_initialize_buckets_for_partial_sorting_32s_6k(T, k, buckets, first_lms_suffix, left_suffixes_count);
             libsais_induce_partial_order_32s_6k_omp(T, SA, n, k, buckets, first_lms_suffix, left_suffixes_count, threads, thread_state);
 
-            sa_sint_t names = libsais_renumber_and_mark_distinct_lms_suffixes_32s_4k_omp(SA, n, m, threads, thread_state);
+            sa_sint_t names = (n / 8192) < k
+                ? libsais_renumber_and_mark_distinct_lms_suffixes_32s_4k_omp(SA, n, m, threads, thread_state)
+                : libsais_renumber_and_gather_lms_suffixes_omp(SA, n, m, fs, threads, thread_state);
+
             if (names < m)
             {
-                sa_sint_t f = libsais_compact_lms_suffixes_32s_omp(T, SA, n, m, fs, threads, thread_state);
+                sa_sint_t f = (n / 8192) < k
+                    ? libsais_compact_lms_suffixes_32s_omp(T, SA, n, m, fs, threads, thread_state)
+                    : 0;
 
                 if (libsais_main_32s_recursion(SA + n + fs - m + f, SA, m - f, names - f, fs + n - 2 * m + f, threads, thread_state, local_buffer) != 0)
                 {
@@ -6486,7 +6491,7 @@ static sa_sint_t libsais_main_8u(const uint8_t * T, sa_sint_t * SA, sa_sint_t n,
         libsais_initialize_buckets_for_partial_sorting_8u(T, buckets, first_lms_suffix, left_suffixes_count);
         libsais_induce_partial_order_8u_omp(T, SA, n, buckets, first_lms_suffix, left_suffixes_count, threads, thread_state);
 
-        sa_sint_t names = libsais_renumber_and_gather_lms_suffixes_8u_omp(SA, n, m, fs, threads, thread_state);
+        sa_sint_t names = libsais_renumber_and_gather_lms_suffixes_omp(SA, n, m, fs, threads, thread_state);
         if (names < m)
         {
             if (libsais_main_32s_entry(SA + n + fs - m, SA, m, names, fs + n - 2 * m, threads, thread_state) != 0)
