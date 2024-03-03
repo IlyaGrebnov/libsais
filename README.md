@@ -23,7 +23,8 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
-* March 3, 2024 (2.7.6)
+* March 3, 2024 (2.8.0)
+  * Implemented permuted longest common prefix array (PLCP) construction of an integer array.
   * Fixed compilation error when compiling the library with OpenMP enabled.
 * February 26, 2024 (2.7.5)
   * Improved performance of suffix array and burrows wheeler transform construction on degenerate inputs.

@@ -1,4 +1,5 @@
-Changes in 2.7.6 (March 3, 2024)
+Changes in 2.8.0 (March 3, 2024)
+- Implemented permuted longest common prefix array (PLCP) construction of an integer array.
 - Fixed compilation error when compiling the library with OpenMP enabled.
 
 Changes in 2.7.5 (February 26, 2024)

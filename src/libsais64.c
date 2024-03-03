@@ -6288,7 +6288,7 @@ static void libsais64_convert_inplace_32u_to_64u_omp(uint32_t * V, sa_sint_t n, 
             fast_sint_t omp_block_start     = omp_thread_num * omp_block_stride;
             fast_sint_t omp_block_size      = omp_thread_num < omp_num_threads - 1 ? omp_block_stride : block_size - omp_block_start;
 
-            libsais64_convert_32u_to_64u((uint32_t *)V, (uint64_t *)V, n + omp_block_start, omp_block_size);
+            libsais64_convert_32u_to_64u(((uint32_t *)(void *)V) + n, ((uint64_t *)(void *)V) + n, omp_block_start, omp_block_size);
         }
     }
 

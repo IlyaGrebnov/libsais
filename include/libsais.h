@@ -25,9 +25,9 @@ Please see the file LICENSE for full copyright information.
 #define LIBSAIS_H 1
 
 #define LIBSAIS_VERSION_MAJOR   2
-#define LIBSAIS_VERSION_MINOR   7
-#define LIBSAIS_VERSION_PATCH   5
-#define LIBSAIS_VERSION_STRING  "2.7.5"
+#define LIBSAIS_VERSION_MINOR   8
+#define LIBSAIS_VERSION_PATCH   0
+#define LIBSAIS_VERSION_STRING  "2.8.0"
 
 #ifdef _WIN32
     #ifdef LIBSAIS_SHARED
@@ -333,6 +333,16 @@ extern "C" {
     LIBSAIS_API int32_t libsais_plcp(const uint8_t * T, const int32_t * SA, int32_t * PLCP, int32_t n);
 
     /**
+    * Constructs the permuted longest common prefix array (PLCP) of a integer array and a suffix array.
+    * @param T [0..n-1] The input integer array.
+    * @param SA [0..n-1] The input suffix array.
+    * @param PLCP [0..n-1] The output permuted longest common prefix array.
+    * @param n The length of the integer array and the suffix array.
+    * @return 0 if no error occurred, -1 otherwise.
+    */
+    LIBSAIS_API int32_t libsais_plcp_int(const int32_t * T, const int32_t * SA, int32_t * PLCP, int32_t n);
+
+    /**
     * Constructs the longest common prefix array (LCP) of a given permuted longest common prefix array (PLCP) and a suffix array.
     * @param PLCP [0..n-1] The input permuted longest common prefix array.
     * @param SA [0..n-1] The input suffix array.
@@ -353,6 +363,17 @@ extern "C" {
     * @return 0 if no error occurred, -1 otherwise.
     */
     LIBSAIS_API int32_t libsais_plcp_omp(const uint8_t * T, const int32_t * SA, int32_t * PLCP, int32_t n, int32_t threads);
+
+    /**
+    * Constructs the permuted longest common prefix array (PLCP) of a given integer array and a suffix array in parallel using OpenMP.
+    * @param T [0..n-1] The input integer array.
+    * @param SA [0..n-1] The input suffix array.
+    * @param PLCP [0..n-1] The output permuted longest common prefix array.
+    * @param n The length of the integer array and the suffix array.
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 otherwise.
+    */
+    LIBSAIS_API int32_t libsais_plcp_int_omp(const int32_t * T, const int32_t * SA, int32_t * PLCP, int32_t n, int32_t threads);
 
     /**
     * Constructs the longest common prefix array (LCP) of a given permuted longest common prefix array (PLCP) and a suffix array in parallel using OpenMP.

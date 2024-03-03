@@ -7761,6 +7761,54 @@ static void libsais_compute_plcp_omp(const uint8_t * RESTRICT T, sa_sint_t * RES
     }
 }
 
+static void libsais_compute_plcp_int(const int32_t * RESTRICT T, sa_sint_t * RESTRICT PLCP, fast_sint_t n, fast_sint_t omp_block_start, fast_sint_t omp_block_size)
+{
+    const fast_sint_t prefetch_distance = 32;
+
+    fast_sint_t i, j, l = 0;
+    for (i = omp_block_start, j = omp_block_start + omp_block_size - prefetch_distance; i < j; i += 1)
+    {
+        libsais_prefetchw(&PLCP[i + 2 * prefetch_distance]);
+        libsais_prefetchr(&T[PLCP[i + prefetch_distance] + l]);
+
+        fast_sint_t k = PLCP[i], m = n - (i > k ? i : k);
+        while (l < m && T[i + l] == T[k + l]) { l++; }
+
+        PLCP[i] = (sa_sint_t)l; l -= (l != 0);
+    }
+
+    for (j += prefetch_distance; i < j; i += 1)
+    {
+        fast_sint_t k = PLCP[i], m = n - (i > k ? i : k);
+        while (l < m && T[i + l] == T[k + l]) { l++; }
+
+        PLCP[i] = (sa_sint_t)l; l -= (l != 0);
+    }
+}
+
+static void libsais_compute_plcp_int_omp(const int32_t * RESTRICT T, sa_sint_t * RESTRICT PLCP, sa_sint_t n, sa_sint_t threads)
+{
+#if defined(LIBSAIS_OPENMP)
+    #pragma omp parallel num_threads(threads) if(threads > 1 && n >= 65536)
+#endif
+    {
+#if defined(LIBSAIS_OPENMP)
+        fast_sint_t omp_thread_num    = omp_get_thread_num();
+        fast_sint_t omp_num_threads   = omp_get_num_threads();
+#else
+        UNUSED(threads);
+
+        fast_sint_t omp_thread_num    = 0;
+        fast_sint_t omp_num_threads   = 1;
+#endif
+        fast_sint_t omp_block_stride  = (n / omp_num_threads) & (-16);
+        fast_sint_t omp_block_start   = omp_thread_num * omp_block_stride;
+        fast_sint_t omp_block_size    = omp_thread_num < omp_num_threads - 1 ? omp_block_stride : n - omp_block_start;
+
+        libsais_compute_plcp_int(T, PLCP, n, omp_block_start, omp_block_size);
+    }
+}
+
 static void libsais_compute_lcp(const sa_sint_t * RESTRICT PLCP, const sa_sint_t * RESTRICT SA, sa_sint_t * RESTRICT LCP, fast_sint_t omp_block_start, fast_sint_t omp_block_size)
 {
     const fast_sint_t prefetch_distance = 32;
@@ -7831,6 +7879,24 @@ int32_t libsais_plcp(const uint8_t * T, const int32_t * SA, int32_t * PLCP, int3
     return 0;
 }
 
+int32_t libsais_plcp_int(const int32_t * T, const int32_t * SA, int32_t * PLCP, int32_t n)
+{
+    if ((T == NULL) || (SA == NULL) || (PLCP == NULL) || (n < 0))
+    {
+        return -1;
+    }
+    else if (n <= 1)
+    {
+        if (n == 1) { PLCP[0] = 0; }
+        return 0;
+    }
+
+    libsais_compute_phi_omp(SA, PLCP, n, 1);
+    libsais_compute_plcp_int_omp(T, PLCP, n, 1);
+
+    return 0;
+}
+
 int32_t libsais_lcp(const int32_t * PLCP, const int32_t * SA, int32_t * LCP, int32_t n)
 {
     if ((PLCP == NULL) || (SA == NULL) || (LCP == NULL) || (n < 0))
@@ -7866,6 +7932,26 @@ int32_t libsais_plcp_omp(const uint8_t * T, const int32_t * SA, int32_t * PLCP, 
 
     libsais_compute_phi_omp(SA, PLCP, n, threads);
     libsais_compute_plcp_omp(T, PLCP, n, threads);
+
+    return 0;
+}
+
+int32_t libsais_plcp_int_omp(const int32_t * T, const int32_t * SA, int32_t * PLCP, int32_t n, int32_t threads)
+{
+    if ((T == NULL) || (SA == NULL) || (PLCP == NULL) || (n < 0) || (threads < 0))
+    {
+        return -1;
+    }
+    else if (n <= 1)
+    {
+        if (n == 1) { PLCP[0] = 0; }
+        return 0;
+    }
+    
+    threads = threads > 0 ? threads : omp_get_max_threads();
+
+    libsais_compute_phi_omp(SA, PLCP, n, threads);
+    libsais_compute_plcp_int_omp(T, PLCP, n, threads);
 
     return 0;
 }
