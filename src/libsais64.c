@@ -6769,8 +6769,8 @@ int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, in
 
         if (index >= 0)
         {
-            libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)SA, (uint64_t *)SA, n, threads);
-            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, (uint64_t *)freq, ALPHABET_SIZE, threads); }
+            libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)SA, n, threads);
+            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, ALPHABET_SIZE, threads); }
         }
 
         return index;
@@ -6801,7 +6801,7 @@ int64_t libsais64_bwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n
 
         if (index >= 0)
         {
-            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, (uint64_t *)freq, ALPHABET_SIZE, threads); }
+            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, ALPHABET_SIZE, threads); }
         }
 
         return index;
@@ -6843,8 +6843,8 @@ int64_t libsais64_bwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64
 
         if (index >= 0)
         {
-            libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)I, (uint64_t *)I, 1 + ((n - 1) / r), threads);
-            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, (uint64_t *)freq, ALPHABET_SIZE, threads); }
+            libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)I, 1 + ((n - 1) / r), threads);
+            if (freq != NULL) { libsais64_convert_inplace_32u_to_64u_omp((uint32_t *)freq, ALPHABET_SIZE, threads); }
         }
 
         return index;

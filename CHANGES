@@ -1,3 +1,6 @@
+Changes in 2.7.6 (March 3, 2024)
+- Fixed compilation error when compiling the library with OpenMP enabled.
+
 Changes in 2.7.5 (February 26, 2024)
 - Improved performance of suffix array and burrows wheeler transform construction on degenerate inputs.
 
