@@ -6528,7 +6528,7 @@ static sa_sint_t libsais_main(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, sa
     return index;
 }
 
-static int32_t libsais_main_int(sa_sint_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t k, sa_sint_t fs, sa_sint_t threads)
+static sa_sint_t libsais_main_int(sa_sint_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t k, sa_sint_t fs, sa_sint_t threads)
 {
     LIBSAIS_THREAD_STATE * RESTRICT thread_state = threads > 1 ? libsais_alloc_thread_state(threads) : NULL;
 

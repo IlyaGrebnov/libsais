@@ -26,8 +26,8 @@ Please see the file LICENSE for full copyright information.
 
 #define LIBSAIS64_VERSION_MAJOR   2
 #define LIBSAIS64_VERSION_MINOR   8
-#define LIBSAIS64_VERSION_PATCH   1
-#define LIBSAIS64_VERSION_STRING  "2.8.1"
+#define LIBSAIS64_VERSION_PATCH   2
+#define LIBSAIS64_VERSION_STRING  "2.8.2"
 
 #ifdef _WIN32
     #ifdef LIBSAIS_SHARED
@@ -60,6 +60,18 @@ extern "C" {
     */
     LIBSAIS64_API int64_t libsais64(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq);
 
+    /**
+    * Constructs the suffix array of a given integer array.
+    * Note, during construction input array will be modified, but restored at the end if no errors occurred.
+    * @param T [0..n-1] The input integer array.
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the integer array.
+    * @param k The alphabet size of the input integer array.
+    * @param fs Extra space available at the end of SA array (can be 0, but 4k or better 6k is recommended for optimal performance).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_long(int64_t * T, int64_t * SA, int64_t n, int64_t k, int64_t fs);
+
 #if defined(LIBSAIS_OPENMP)
     /**
     * Constructs the suffix array of a given string in parallel using OpenMP.
@@ -72,6 +84,19 @@ extern "C" {
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     LIBSAIS64_API int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq, int64_t threads);
+
+    /**
+    * Constructs the suffix array of a given integer array in parallel using OpenMP.
+    * Note, during construction input array will be modified, but restored at the end if no errors occurred.
+    * @param T [0..n-1] The input integer array.
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the integer array.
+    * @param k The alphabet size of the input integer array.
+    * @param fs Extra space available at the end of SA array (can be 0, but 4k or better 6k is recommended for optimal performance).
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_long_omp(int64_t * T, int64_t * SA, int64_t n, int64_t k, int64_t fs, int64_t threads);
 #endif
 
     /**

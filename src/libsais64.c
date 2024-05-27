@@ -6584,6 +6584,19 @@ static sa_sint_t libsais64_main(const uint8_t * T, sa_sint_t * SA, sa_sint_t n, 
     return index;
 }
 
+static sa_sint_t libsais64_main_long(sa_sint_t * T, sa_sint_t * SA, sa_sint_t n, sa_sint_t k, sa_sint_t fs, sa_sint_t threads)
+{
+    LIBSAIS_THREAD_STATE * RESTRICT thread_state = threads > 1 ? libsais64_alloc_thread_state(threads) : NULL;
+
+    sa_sint_t index = thread_state != NULL || threads == 1
+        ? libsais64_main_32s_entry(T, SA, n, k, fs, threads, thread_state)
+        : -2;
+
+    libsais64_free_thread_state(thread_state);
+
+    return index;
+}
+
 static void libsais64_bwt_copy_8u(uint8_t * RESTRICT U, sa_sint_t * RESTRICT A, sa_sint_t n)
 {
     const fast_sint_t prefetch_distance = 32;
@@ -6664,6 +6677,21 @@ int64_t libsais64(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_
     }
 
     return libsais64_main(T, SA, n, 0, 0, NULL, fs, freq, 1);
+}
+
+int64_t libsais64_long(int64_t * T, int64_t * SA, int64_t n, int64_t k, int64_t fs)
+{
+    if ((T == NULL) || (SA == NULL) || (n < 0) || (fs < 0))
+    {
+        return -1;
+    }
+    else if (n < 2)
+    {
+        if (n == 1) { SA[0] = 0; }
+        return 0;
+    }
+
+    return libsais64_main_long(T, SA, n, k, fs, 1);
 }
 
 int64_t libsais64_bwt(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq)
@@ -6777,6 +6805,23 @@ int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, in
     }
 
     return libsais64_main(T, SA, n, 0, 0, NULL, fs, freq, threads);
+}
+
+int64_t libsais64_long_omp(int64_t * T, int64_t * SA, int64_t n, int64_t k, int64_t fs, int64_t threads)
+{
+    if ((T == NULL) || (SA == NULL) || (n < 0) || (fs < 0) || (threads < 0))
+    {
+        return -1;
+    }
+    else if (n < 2)
+    {
+        if (n == 1) { SA[0] = 0; }
+        return 0;
+    }
+
+    threads = threads > 0 ? threads : omp_get_max_threads();
+
+    return libsais64_main_long(T, SA, n, k, fs, threads);
 }
 
 int64_t libsais64_bwt_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t threads)
