@@ -23,8 +23,10 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* June 11, 2024 (2.8.3)
+  * Implemented suffix array construction of a long 16-bit array (libsais16x64).
 * May 27, 2024 (2.8.2)
-  * Implemented suffix array construction of a long integer array (libsais64).
+  * Implemented suffix array construction of a long 64-bit array (libsais64).
 * April 5, 2024 (2.8.1)
   * Fixed out-of-bound memory access issue for large inputs (libsais64).
 * March 3, 2024 (2.8.0)
@@ -65,11 +67,12 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
 
 ## Versions of the libsais
 * [libsais.c](src/libsais.c) (and corresponding [libsais.h](include/libsais.h)) is for suffix array, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
-  * This version of the library could also be used to construct suffix array of an integer array (with a caveat that input array must be mutable).
-* [libsais64.c](src/libsais64.c) (and corresponding [libsais64.h](include/libsais64.h)) is optional extension of the library for inputs larger or equlas to 2GB (2147483648 bytes).
-* [libsais16.c](src/libsais16.c) (and corresponding [libsais16.h](include/libsais16.h)) is independent version of the library for 16-bit inputs.
+  * [libsais64.c](src/libsais64.c) (and corresponding [libsais64.h](include/libsais64.h)) is optional extension of the library for inputs larger or equlas to 2GB (2147483648 bytes).
+  * This versions of the library could also be used to construct suffix array of an integer array (with a caveat that input array must be mutable).
+* [libsais16.c](src/libsais16.c) + [libsais16x64.c](src/libsais16x64.c) (and corresponding [libsais16.h](include/libsais16.h) + [libsais16x64.h](include/libsais16x64.h)) is independent version of the library for 16-bit inputs.
+  * This version of the library could also be used to construct suffix array and BWT of a set of strings by adding a unique end-of-string symbol to each string and then computing the result for the concatenated string.
 
-## Examples of APIs (see [libsais.h](include/libsais.h), [libsais16.h](include/libsais16.h) and [libsais64.h](include/libsais64.h) for complete APIs list)
+## Examples of APIs (see [libsais.h](include/libsais.h), [libsais16.h](include/libsais16.h), [libsais16x64.h](include/libsais16x64.h) and [libsais64.h](include/libsais64.h) for complete APIs list)
 ```c
     /**
     * Constructs the suffix array of a given string.
@@ -124,7 +127,7 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
 CPMAddPackage(
   NAME libsais
   GITHUB_REPOSITORY IlyaGrebnov/libsais
-  GIT_TAG v2.8.1
+  GIT_TAG v2.8.3
   OPTIONS
     "LIBSAIS_USE_OPENMP OFF"
     "LIBSAIS_BUILD_SHARED_LIB OFF"

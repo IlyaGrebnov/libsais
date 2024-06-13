@@ -1,5 +1,8 @@
+Changes in 2.8.3 (June 11, 2024)
+- Implemented suffix array construction of a long 16-bit array (libsais16x64).
+
 Changes in 2.8.2 (May 27, 2024)
-- Implemented suffix array construction of a long integer array (libsais64).
+- Implemented suffix array construction of a long 64-bit array (libsais64).
 
 Changes in 2.8.1 (April 5, 2024)
 - Fixed out-of-bound memory access issue for large inputs (libsais64).
