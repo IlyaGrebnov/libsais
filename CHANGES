@@ -1,3 +1,6 @@
+Changes in 2.8.4 (June 13, 2024)
+- Additional OpenMP acceleration (libsais16 & libsais16x64).
+
 Changes in 2.8.3 (June 11, 2024)
 - Implemented suffix array construction of a long 16-bit array (libsais16x64).
 
