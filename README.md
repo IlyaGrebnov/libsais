@@ -23,6 +23,8 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* July 31, 2024 (2.8.5)
+  * Miscellaneous changes to reduce compiler warnings about implicit functions.
 * June 13, 2024 (2.8.4)
   * Additional OpenMP acceleration (libsais16 & libsais16x64).
 * June 11, 2024 (2.8.3)
@@ -129,7 +131,7 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
 CPMAddPackage(
   NAME libsais
   GITHUB_REPOSITORY IlyaGrebnov/libsais
-  GIT_TAG v2.8.3
+  GIT_TAG v2.8.5
   OPTIONS
     "LIBSAIS_USE_OPENMP OFF"
     "LIBSAIS_BUILD_SHARED_LIB OFF"

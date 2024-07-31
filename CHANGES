@@ -1,3 +1,6 @@
+Changes in 2.8.5 (July 31, 2024)
+- Miscellaneous changes to reduce compiler warnings about implicit functions.
+
 Changes in 2.8.4 (June 13, 2024)
 - Additional OpenMP acceleration (libsais16 & libsais16x64).
 
