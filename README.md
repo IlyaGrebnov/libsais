@@ -23,6 +23,8 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* November 18, 2024 (2.8.6)
+  * Fixed out-of-bound memory access issue for large inputs.
 * July 31, 2024 (2.8.5)
   * Miscellaneous changes to reduce compiler warnings about implicit functions.
 * June 13, 2024 (2.8.4)

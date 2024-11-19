@@ -6308,7 +6308,7 @@ static sa_sint_t libsais64_main_32s_recursion(sa_sint_t * RESTRICT T, sa_sint_t 
     if (n <= INT32_MAX)
     {
         sa_sint_t new_fs = (fs + fs + n + n) <= INT32_MAX ? (fs + fs + n) : INT32_MAX - n;
-        if ((new_fs / k >= 4) || (new_fs >= fs))
+        if ((new_fs / k >= 6) || (new_fs / k >= 4 && n <= INT32_MAX / 2) || (new_fs / k < 4 && new_fs >= fs))
         {
             libsais64_convert_inplace_64u_to_32u((uint32_t *)(void *)T, 0, n);
 
@@ -6326,11 +6326,11 @@ static sa_sint_t libsais64_main_32s_recursion(sa_sint_t * RESTRICT T, sa_sint_t 
         }
     }
 
-    if (k > 0 && ((fs / k >= 6) || (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 6)))
+    if (k > 0 && ((fs / k >= 6) || (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 6 && threads == 1)))
     {
         sa_sint_t alignment = (fs - 1024) / k >= 6 ? (sa_sint_t)1024 : (sa_sint_t)16;
         sa_sint_t * RESTRICT buckets = (fs - alignment) / k >= 6 ? (sa_sint_t *)libsais64_align_up(&SA[n + fs - 6 * (fast_sint_t)k - alignment], (size_t)alignment * sizeof(sa_sint_t)) : &SA[n + fs - 6 * (fast_sint_t)k];
-        buckets = (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 6) ? local_buffer : buckets;
+        buckets = (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 6 && threads == 1) ? local_buffer : buckets;
 
         sa_sint_t m = libsais64_count_and_gather_lms_suffixes_32s_4k_omp(T, SA, n, k, buckets, threads, thread_state);
         if (m > 1)
@@ -6385,11 +6385,11 @@ static sa_sint_t libsais64_main_32s_recursion(sa_sint_t * RESTRICT T, sa_sint_t 
 
         return 0;
     }
-    else if (k > 0 && ((fs / k >= 4) || (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 4)))
+    else if (k > 0 && (n <= SAINT_MAX / 2) && ((fs / k >= 4) || (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 4 && threads == 1)))
     {
         sa_sint_t alignment = (fs - 1024) / k >= 4 ? (sa_sint_t)1024 : (sa_sint_t)16;
         sa_sint_t * RESTRICT buckets = (fs - alignment) / k >= 4 ? (sa_sint_t *)libsais64_align_up(&SA[n + fs - 4 * (fast_sint_t)k - alignment], (size_t)alignment * sizeof(sa_sint_t)) : &SA[n + fs - 4 * (fast_sint_t)k];
-        buckets = (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 4) ? local_buffer : buckets;
+        buckets = (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 4 && threads == 1) ? local_buffer : buckets;
 
         sa_sint_t m = libsais64_count_and_gather_lms_suffixes_32s_2k_omp(T, SA, n, k, buckets, threads, thread_state);
         if (m > 1)
@@ -6430,11 +6430,11 @@ static sa_sint_t libsais64_main_32s_recursion(sa_sint_t * RESTRICT T, sa_sint_t 
 
         return 0;
     }
-    else if (k > 0 && ((fs / k >= 2) || (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 2)))
+    else if (k > 0 && ((fs / k >= 2) || (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 2 && threads == 1)))
     {
         sa_sint_t alignment = (fs - 1024) / k >= 2 ? (sa_sint_t)1024 : (sa_sint_t)16;
         sa_sint_t * RESTRICT buckets = (fs - alignment) / k >= 2 ? (sa_sint_t *)libsais64_align_up(&SA[n + fs - 2 * (fast_sint_t)k - alignment], (size_t)alignment * sizeof(sa_sint_t)) : &SA[n + fs - 2 * (fast_sint_t)k];
-        buckets = (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 2) ? local_buffer : buckets;
+        buckets = (LIBSAIS_LOCAL_BUFFER_SIZE / k >= 2 && threads == 1) ? local_buffer : buckets;
 
         sa_sint_t m = libsais64_count_and_gather_lms_suffixes_32s_2k_omp(T, SA, n, k, buckets, threads, thread_state);
         if (m > 1)
