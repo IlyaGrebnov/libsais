@@ -6,7 +6,7 @@
 
 The times are the minimum of five runs measuring **single-threaded (ST)** and **multi-threaded (MT)** performance of suffix array construction.
 
-### Silesia Corpus ###
+### [Silesia Corpus](https://www.data-compression.info/Corpora/SilesiaCorpus/index.html) ###
 
 |  file           |    size     |     libsais 2.1.0  (ST)    |    divsufsort 2.0.2 (ST)   |speedup (ST)|     libsais 2.1.0  (MT)    |    divsufsort 2.0.2 (MT)   |speedup (MT)|
 |:---------------:|:-----------:|:--------------------------:|:--------------------------:|:----------:|:--------------------------:|:--------------------------:|:----------:|
@@ -25,7 +25,7 @@ The times are the minimum of five runs measuring **single-threaded (ST)** and **
 
 
 
-### Large Canterbury Corpus ###
+### [Large Canterbury Corpus](https://www.data-compression.info/Corpora/CanterburyCorpus/) ###
 
 |  file           |    size     |     libsais 2.1.0  (ST)    |    divsufsort 2.0.2 (ST)   |speedup (ST)|     libsais 2.1.0  (MT)    |    divsufsort 2.0.2 (MT)   |speedup (MT)|
 |:---------------:|:-----------:|:--------------------------:|:--------------------------:|:----------:|:--------------------------:|:--------------------------:|:----------:|
@@ -35,7 +35,7 @@ The times are the minimum of five runs measuring **single-threaded (ST)** and **
 
 
 
-### Manzini Corpus ###
+### [Manzini Corpus](https://people.unipmn.it/manzini/lightweight/corpus/) ###
 
 |  file           |    size     |     libsais 2.1.0  (ST)    |    divsufsort 2.0.2 (ST)   |speedup (ST)|     libsais 2.1.0  (MT)    |    divsufsort 2.0.2 (MT)   |speedup (MT)|
 |:---------------:|:-----------:|:--------------------------:|:--------------------------:|:----------:|:--------------------------:|:--------------------------:|:----------:|
@@ -52,7 +52,7 @@ The times are the minimum of five runs measuring **single-threaded (ST)** and **
 
 
 
-### Large Text Compression Benchmark Corpus ###
+### [Large Text Compression Benchmark Corpus](https://www.mattmahoney.net/dc/textdata.html) ###
 
 |  file           |    size     |     libsais 2.1.0  (ST)    |    divsufsort 2.0.2 (ST)   |speedup (ST)|     libsais 2.1.0  (MT)    |    divsufsort 2.0.2 (MT)   |speedup (MT)|
 |:---------------:|:-----------:|:--------------------------:|:--------------------------:|:----------:|:--------------------------:|:--------------------------:|:----------:|
@@ -61,7 +61,7 @@ The times are the minimum of five runs measuring **single-threaded (ST)** and **
 
 
 
-### The Gauntlet Corpus ###
+### [The Gauntlet Corpus](https://github.com/michaelmaniscalco/gauntlet_corpus) ###
 
 |  file           |    size     |     libsais 2.1.0  (ST)    |    divsufsort 2.0.2 (ST)   |speedup (ST)|     libsais 2.1.0  (MT)    |    divsufsort 2.0.2 (MT)   |speedup (MT)|
 |:---------------:|:-----------:|:--------------------------:|:--------------------------:|:----------:|:--------------------------:|:--------------------------:|:----------:|
@@ -79,7 +79,7 @@ The times are the minimum of five runs measuring **single-threaded (ST)** and **
 
 
 
-### Pizza & Chilli Corpus ###
+### [Pizza & Chilli Corpus](https://pizzachili.dcc.uchile.cl/texts.html) ###
 
 |  file           |    size     |     libsais 2.1.0  (ST)    |    divsufsort 2.0.2 (ST)   |speedup (ST)|     libsais 2.1.0  (MT)    |    divsufsort 2.0.2 (MT)   |speedup (MT)|
 |:---------------:|:-----------:|:--------------------------:|:--------------------------:|:----------:|:--------------------------:|:--------------------------:|:----------:|
@@ -92,7 +92,7 @@ The times are the minimum of five runs measuring **single-threaded (ST)** and **
 
 
 
-### Pizza & Chilli Repetitive Corpus ###
+### [Pizza & Chilli Repetitive Corpus](https://pizzachili.dcc.uchile.cl/repcorpus.html) ###
 
 |  file           |    size     |     libsais 2.1.0  (ST)    |    divsufsort 2.0.2 (ST)   |speedup (ST)|     libsais 2.1.0  (MT)    |    divsufsort 2.0.2 (MT)   |speedup (MT)|
 |:---------------:|:-----------:|:--------------------------:|:--------------------------:|:----------:|:--------------------------:|:--------------------------:|:----------:|
