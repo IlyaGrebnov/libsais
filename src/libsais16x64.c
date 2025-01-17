@@ -3,7 +3,7 @@
 This file is a part of libsais, a library for linear time suffix array,
 longest common prefix array and burrows wheeler transform construction.
 
-   Copyright (c) 2021-2024 Ilya Grebnov <ilya.grebnov@gmail.com>
+   Copyright (c) 2021-2025 Ilya Grebnov <ilya.grebnov@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -6298,6 +6298,7 @@ static sa_sint_t libsais16x64_main_32s_recursion(sa_sint_t * RESTRICT T, sa_sint
             if (index >= 0)
             {
                 libsais16x64_convert_inplace_32u_to_64u_omp((uint32_t *)SA, n, threads);
+                libsais16x64_convert_inplace_32u_to_64u_omp((uint32_t *)T, n, threads);
             }
 
             return index;

@@ -1,3 +1,6 @@
+Changes in 2.8.7 (January 16, 2025)
+- Restore the input array after suffix array construction (libsais64 & libsais16x64).
+
 Changes in 2.8.6 (November 18, 2024)
 - Fixed out-of-bound memory access issue for large inputs.
 
