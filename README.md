@@ -23,6 +23,9 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* March 16, 2025 (2.9.0)
+  * Support for generalized suffix array (GSA) construction.
+  * Support for longest common prefix array (LCP) construction for generalized suffix array (GSA).
 * January 16, 2025 (2.8.7)
   * Restore the input array after suffix array construction (libsais64 & libsais16x64).
 * November 18, 2024 (2.8.6)

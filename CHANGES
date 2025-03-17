@@ -1,3 +1,7 @@
+Changes in 2.9.0 (March 16, 2025)
+- Support for generalized suffix array (GSA) construction.
+- Support for longest common prefix array (LCP) construction for generalized suffix array (GSA).
+
 Changes in 2.8.7 (January 16, 2025)
 - Restore the input array after suffix array construction (libsais64 & libsais16x64).
 

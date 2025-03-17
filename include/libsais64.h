@@ -25,9 +25,9 @@ Please see the file LICENSE for full copyright information.
 #define LIBSAIS64_H 1
 
 #define LIBSAIS64_VERSION_MAJOR   2
-#define LIBSAIS64_VERSION_MINOR   8
-#define LIBSAIS64_VERSION_PATCH   7
-#define LIBSAIS64_VERSION_STRING  "2.8.7"
+#define LIBSAIS64_VERSION_MINOR   9
+#define LIBSAIS64_VERSION_PATCH   0
+#define LIBSAIS64_VERSION_STRING  "2.9.0"
 
 #ifdef _WIN32
     #ifdef LIBSAIS_SHARED
@@ -61,6 +61,17 @@ extern "C" {
     LIBSAIS64_API int64_t libsais64(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq);
 
     /**
+    * Constructs the generalized suffix array (GSA) of given string set.
+    * @param T [0..n-1] The input string set using 0 as separators (T[n-1] must be 0).
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the given string set.
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_gsa(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq);
+
+    /**
     * Constructs the suffix array of a given integer array.
     * Note, during construction input array will be modified, but restored at the end if no errors occurred.
     * @param T [0..n-1] The input integer array.
@@ -84,6 +95,18 @@ extern "C" {
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     LIBSAIS64_API int64_t libsais64_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq, int64_t threads);
+
+    /**
+    * Constructs the generalized suffix array (GSA) of given string set in parallel using OpenMP.
+    * @param T [0..n-1] The input string set using 0 as separators (T[n-1] must be 0).
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the given string set.
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_gsa_omp(const uint8_t * T, int64_t * SA, int64_t n, int64_t fs, int64_t * freq, int64_t threads);
 
     /**
     * Constructs the suffix array of a given integer array in parallel using OpenMP.
@@ -220,9 +243,19 @@ extern "C" {
     LIBSAIS64_API int64_t libsais64_plcp(const uint8_t * T, const int64_t * SA, int64_t * PLCP, int64_t n);
 
     /**
+    * Constructs the permuted longest common prefix array (PLCP) of a given string set and a generalized suffix array (GSA).
+    * @param T [0..n-1] The input string set using 0 as separators (T[n-1] must be 0).
+    * @param SA [0..n-1] The input generalized suffix array.
+    * @param PLCP [0..n-1] The output permuted longest common prefix array.
+    * @param n The length of the string set and the generalized suffix array.
+    * @return 0 if no error occurred, -1 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_plcp_gsa(const uint8_t * T, const int64_t * SA, int64_t * PLCP, int64_t n);
+
+    /**
     * Constructs the longest common prefix array (LCP) of a given permuted longest common prefix array (PLCP) and a suffix array.
     * @param PLCP [0..n-1] The input permuted longest common prefix array.
-    * @param SA [0..n-1] The input suffix array.
+    * @param SA [0..n-1] The input suffix array or generalized suffix array (GSA).
     * @param LCP [0..n-1] The output longest common prefix array (can be SA).
     * @param n The length of the permuted longest common prefix array and the suffix array.
     * @return 0 if no error occurred, -1 otherwise.
@@ -242,9 +275,20 @@ extern "C" {
     LIBSAIS64_API int64_t libsais64_plcp_omp(const uint8_t * T, const int64_t * SA, int64_t * PLCP, int64_t n, int64_t threads);
 
     /**
+    * Constructs the permuted longest common prefix array (PLCP) of a given string set and a generalized suffix array (GSA) in parallel using OpenMP.
+    * @param T [0..n-1] The input string set using 0 as separators (T[n-1] must be 0).
+    * @param SA [0..n-1] The input generalized suffix array.
+    * @param PLCP [0..n-1] The output permuted longest common prefix array.
+    * @param n The length of the string set and the generalized suffix array.
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_plcp_gsa_omp(const uint8_t * T, const int64_t * SA, int64_t * PLCP, int64_t n, int64_t threads);
+
+    /**
     * Constructs the longest common prefix array (LCP) of a given permuted longest common prefix array (PLCP) and a suffix array in parallel using OpenMP.
     * @param PLCP [0..n-1] The input permuted longest common prefix array.
-    * @param SA [0..n-1] The input suffix array.
+    * @param SA [0..n-1] The input suffix array or generalized suffix array (GSA).
     * @param LCP [0..n-1] The output longest common prefix array (can be SA).
     * @param n The length of the permuted longest common prefix array and the suffix array.
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).

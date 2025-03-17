@@ -25,9 +25,9 @@ Please see the file LICENSE for full copyright information.
 #define LIBSAIS16_H 1
 
 #define LIBSAIS16_VERSION_MAJOR   2
-#define LIBSAIS16_VERSION_MINOR   8
-#define LIBSAIS16_VERSION_PATCH   7
-#define LIBSAIS16_VERSION_STRING  "2.8.7"
+#define LIBSAIS16_VERSION_MINOR   9
+#define LIBSAIS16_VERSION_PATCH   0
+#define LIBSAIS16_VERSION_STRING  "2.9.0"
 
 #ifdef _WIN32
     #ifdef LIBSAIS_SHARED
@@ -84,6 +84,17 @@ extern "C" {
     LIBSAIS16_API int32_t libsais16(const uint16_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq);
 
     /**
+    * Constructs the generalized suffix array (GSA) of given 16-bit string set.
+    * @param T [0..n-1] The input 16-bit string set using 0 as separators (T[n-1] must be 0).
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the given 16-bit string set.
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
+    * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS16_API int32_t libsais16_gsa(const uint16_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq);
+
+    /**
     * Constructs the suffix array of a given integer array.
     * Note, during construction input array will be modified, but restored at the end if no errors occurred.
     * @param T [0..n-1] The input integer array.
@@ -107,6 +118,18 @@ extern "C" {
     */
     LIBSAIS16_API int32_t libsais16_ctx(const void * ctx, const uint16_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq);
 
+    /**
+    * Constructs the generalized suffix array (GSA) of given 16-bit string set using libsais16 context.
+    * @param ctx The libsais16 context.
+    * @param T [0..n-1] The input 16-bit string set using 0 as separators (T[n-1] must be 0).
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the given 16-bit string set.
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
+    * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS16_API int32_t libsais16_gsa_ctx(const void * ctx, const uint16_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq);
+
 #if defined(LIBSAIS_OPENMP)
     /**
     * Constructs the suffix array of a given 16-bit string in parallel using OpenMP.
@@ -119,6 +142,18 @@ extern "C" {
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     LIBSAIS16_API int32_t libsais16_omp(const uint16_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq, int32_t threads);
+
+    /**
+    * Constructs the generalized suffix array (GSA) of given 16-bit string set in parallel using OpenMP.
+    * @param T [0..n-1] The input 16-bit string set using 0 as separators (T[n-1] must be 0).
+    * @param SA [0..n-1+fs] The output array of suffixes.
+    * @param n The length of the given 16-bit string set.
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
+    * @param freq [0..65535] The output 16-bit symbol frequency table (can be NULL).
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS16_API int32_t libsais16_gsa_omp(const uint16_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq, int32_t threads);
 
     /**
     * Constructs the suffix array of a given integer array in parallel using OpenMP.
@@ -333,9 +368,19 @@ extern "C" {
     LIBSAIS16_API int32_t libsais16_plcp(const uint16_t * T, const int32_t * SA, int32_t * PLCP, int32_t n);
 
     /**
+    * Constructs the permuted longest common prefix array (PLCP) of a given 16-bit string set and a generalized suffix array (GSA).
+    * @param T [0..n-1] The input 16-bit string set using 0 as separators (T[n-1] must be 0).
+    * @param SA [0..n-1] The input generalized suffix array.
+    * @param PLCP [0..n-1] The output permuted longest common prefix array.
+    * @param n The length of the string set and the generalized suffix array.
+    * @return 0 if no error occurred, -1 otherwise.
+    */
+    LIBSAIS16_API int32_t libsais16_plcp_gsa(const uint16_t * T, const int32_t * SA, int32_t * PLCP, int32_t n);
+
+    /**
     * Constructs the longest common prefix array (LCP) of a given permuted longest common prefix array (PLCP) and a suffix array.
     * @param PLCP [0..n-1] The input permuted longest common prefix array.
-    * @param SA [0..n-1] The input suffix array.
+    * @param SA [0..n-1] The input suffix array or generalized suffix array (GSA).
     * @param LCP [0..n-1] The output longest common prefix array (can be SA).
     * @param n The length of the permuted longest common prefix array and the suffix array.
     * @return 0 if no error occurred, -1 otherwise.
@@ -355,9 +400,20 @@ extern "C" {
     LIBSAIS16_API int32_t libsais16_plcp_omp(const uint16_t * T, const int32_t * SA, int32_t * PLCP, int32_t n, int32_t threads);
 
     /**
+    * Constructs the permuted longest common prefix array (PLCP) of a given 16-bit string set and a generalized suffix array (GSA) in parallel using OpenMP.
+    * @param T [0..n-1] The input 16-bit string set using 0 as separators (T[n-1] must be 0).
+    * @param SA [0..n-1] The input generalized suffix array.
+    * @param PLCP [0..n-1] The output permuted longest common prefix array.
+    * @param n The length of the string set and the generalized suffix array.
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 otherwise.
+    */
+    LIBSAIS16_API int32_t libsais16_plcp_gsa_omp(const uint16_t * T, const int32_t * SA, int32_t * PLCP, int32_t n, int32_t threads);
+
+    /**
     * Constructs the longest common prefix array (LCP) of a given permuted longest common prefix array (PLCP) and a suffix array in parallel using OpenMP.
     * @param PLCP [0..n-1] The input permuted longest common prefix array.
-    * @param SA [0..n-1] The input suffix array.
+    * @param SA [0..n-1] The input suffix array or generalized suffix array (GSA).
     * @param LCP [0..n-1] The output longest common prefix array (can be SA).
     * @param n The length of the permuted longest common prefix array and the suffix array.
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
