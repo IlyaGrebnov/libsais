@@ -23,6 +23,8 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* March 19, 2025 (2.9.1)
+  * No functional changes, resolved compiler warnings & undefined behavior.
 * March 16, 2025 (2.9.0)
   * Support for generalized suffix array (GSA) construction.
   * Support for longest common prefix array (LCP) construction for generalized suffix array (GSA).
@@ -194,10 +196,10 @@ The SA-IS algorithm is quite elegant, yet implementing it efficiently presents m
         sa_sint_t p1 = SA[i + prefetch_distance + 1] & SAINT_MAX; sa_sint_t v1 = BUCKETS_INDEX4(T[p1 - (p1 > 0)], 0); libsais_prefetchw(&buckets[v1]);
 
         sa_sint_t p2 = SA[i + 0]; d += (p2 < 0); p2 &= SAINT_MAX; sa_sint_t v2 = BUCKETS_INDEX4(T[p2 - 1], T[p2 - 2] >= T[p2 - 1]);
-        SA[buckets[v2]++] = (p2 - 1) | ((sa_sint_t)(buckets[2 + v2] != d) << (SAINT_BIT - 1)); buckets[2 + v2] = d;
+        SA[buckets[v2]++] = (p2 - 1) | (sa_sint_t)((sa_uint_t)(buckets[2 + v2] != d) << (SAINT_BIT - 1)); buckets[2 + v2] = d;
 
         sa_sint_t p3 = SA[i + 1]; d += (p3 < 0); p3 &= SAINT_MAX; sa_sint_t v3 = BUCKETS_INDEX4(T[p3 - 1], T[p3 - 2] >= T[p3 - 1]);
-        SA[buckets[v3]++] = (p3 - 1) | ((sa_sint_t)(buckets[2 + v3] != d) << (SAINT_BIT - 1)); buckets[2 + v3] = d;
+        SA[buckets[v3]++] = (p3 - 1) | (sa_sint_t)((sa_uint_t)(buckets[2 + v3] != d) << (SAINT_BIT - 1)); buckets[2 + v3] = d;
     }
 ```
 * In the SA-IS algorithm, after induced sorting, the ranks of LMS substrings are computed in suffix order. These ranks then need to be scattered to reorder them in string order before being gathered again to form the compacted string for recursion. At this point, some LMS substrings may be unique, meaning they don't share their rank with any other LMS substring. Being unique, these substrings are essentially already sorted, and their position relative to other LMS substrings is already determined. However, these unique LMS substrings may still be necessary for sorting other, non-unique LMS substrings during recursion-unless a unique LMS substring is immediately followed by another unique LMS substring in the string. In such cases, the rank of any subsequent unique LMS substrings becomes redundant in the compacted string, as it will not be utilized. Leveraging this insight, libsais employs a strategy to further reduce the size of the compacted string by omitting such redundant LMS substring ranks. This process involves a few steps. First, unique LMS substrings are identified by looking ahead while scanning LMS-positions in the suffix array during the ranking and scattering phase. When scattering LMS substring ranks to form the compacted string, the most significant bit (MSB) of the rank is used to mark that this rank is unique. Next, as the library scans the ranks in string order and detects tandems of unique ranks using the MSB, it then  recalculates the MSB for ranks which are redundant, thus markign them for removal from the compacted string. Subsequently, the libsais rescans the LMS-positions in suffix order to recompute the ranks, now focusing only on the ranks of the remaining LMS substrings. The library also uses MSB of first symbol of LMS substrings to mark that LMS substring is removed from the compacted string. Finally, the library builds the compacted string based on the newly recalculated ranks for the remaining LMS substrings, while also saving the final positions for the removed LMS substrings before proceeding with recursion. This reduction process not only further decreases the size of the compacted string but also reduces the alphabet size of the reduced string and creates additional free space in the suffix array, which can be utilized during recursion.
