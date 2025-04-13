@@ -1,3 +1,7 @@
+Changes in 2.10.0 (April 12, 2025)
+- Improved performance, with noticeable gains on ARM architecture.
+- Fixed compiler warnings and addressed undefined behavior.
+
 Changes in 2.9.1 (March 19, 2025)
 - No functional changes, resolved compiler warnings & undefined behavior.
 

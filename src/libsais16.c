@@ -2372,8 +2372,8 @@ static sa_sint_t libsais16_partial_sorting_scan_left_to_right_32s_4k(const sa_si
     {
         libsais16_prefetchw(&SA[i + 3 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i + 2 * prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 & ~SUFFIX_GROUP_MARKER] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL); Ts0--; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i + 2 * prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 & ~SUFFIX_GROUP_MARKER] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL); Ts1--; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i + 2 * prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 & ~SUFFIX_GROUP_MARKER : 2]; libsais16_prefetchr(Ts0 - 1); libsais16_prefetchr(Ts0 - 2);
+        sa_sint_t s1 = SA[i + 2 * prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 & ~SUFFIX_GROUP_MARKER : 2]; libsais16_prefetchr(Ts1 - 1); libsais16_prefetchr(Ts1 - 2);
         sa_sint_t s2 = SA[i + 1 * prefetch_distance + 0]; if (s2 > 0) { const fast_sint_t Ts2 = T[(s2 & ~SUFFIX_GROUP_MARKER) - 1]; libsais16_prefetchw(&induction_bucket[Ts2]); libsais16_prefetchw(&distinct_names[BUCKETS_INDEX2(Ts2, 0)]); }
         sa_sint_t s3 = SA[i + 1 * prefetch_distance + 1]; if (s3 > 0) { const fast_sint_t Ts3 = T[(s3 & ~SUFFIX_GROUP_MARKER) - 1]; libsais16_prefetchw(&induction_bucket[Ts3]); libsais16_prefetchw(&distinct_names[BUCKETS_INDEX2(Ts3, 0)]); }
 
@@ -2414,8 +2414,8 @@ static void libsais16_partial_sorting_scan_left_to_right_32s_1k(const sa_sint_t 
     {
         libsais16_prefetchw(&SA[i + 3 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i + 2 * prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i + 2 * prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i + 2 * prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 1]; libsais16_prefetchr(Ts0 - 1);
+        sa_sint_t s1 = SA[i + 2 * prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 1]; libsais16_prefetchr(Ts1 - 1);
         sa_sint_t s2 = SA[i + 1 * prefetch_distance + 0]; if (s2 > 0) { libsais16_prefetchw(&induction_bucket[T[s2 - 1]]); libsais16_prefetchr(&T[s2] - 2); }
         sa_sint_t s3 = SA[i + 1 * prefetch_distance + 1]; if (s3 > 0) { libsais16_prefetchw(&induction_bucket[T[s3 - 1]]); libsais16_prefetchr(&T[s3] - 2); }
 
@@ -2466,8 +2466,8 @@ static void libsais16_partial_sorting_scan_left_to_right_32s_4k_block_gather(con
     {
         libsais16_prefetchw(&SA[i + 2 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 & ~SUFFIX_GROUP_MARKER] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL); Ts0--; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 & ~SUFFIX_GROUP_MARKER] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL); Ts1--; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 & ~SUFFIX_GROUP_MARKER : 2]; libsais16_prefetchr(Ts0 - 1); libsais16_prefetchr(Ts0 - 2);
+        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 & ~SUFFIX_GROUP_MARKER : 2]; libsais16_prefetchr(Ts1 - 1); libsais16_prefetchr(Ts1 - 2);
 
         libsais16_prefetchw(&cache[i + prefetch_distance]);
 
@@ -2490,8 +2490,8 @@ static void libsais16_partial_sorting_scan_left_to_right_32s_1k_block_gather(con
     {
         libsais16_prefetchw(&SA[i + 2 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL); Ts0--; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL); Ts1--; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 2]; libsais16_prefetchr(Ts0 - 1); libsais16_prefetchr(Ts0 - 2);
+        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 2]; libsais16_prefetchr(Ts1 - 1); libsais16_prefetchr(Ts1 - 2);
 
         libsais16_prefetchw(&cache[i + prefetch_distance]);
 
@@ -2545,8 +2545,8 @@ static sa_sint_t libsais16_partial_sorting_scan_left_to_right_32s_4k_block_sort(
     {
         libsais16_prefetchw(&cache[i + 2 * prefetch_distance]);
 
-        sa_sint_t s0 = cache[i + prefetch_distance + 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0 >> 1]; libsais16_prefetchw(s0 >= 0 ? Is0 : NULL); const sa_sint_t * Ds0 = &distinct_names[s0]; libsais16_prefetchw(s0 >= 0 ? Ds0 : NULL); 
-        sa_sint_t s1 = cache[i + prefetch_distance + 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1 >> 1]; libsais16_prefetchw(s1 >= 0 ? Is1 : NULL); const sa_sint_t * Ds1 = &distinct_names[s1]; libsais16_prefetchw(s1 >= 0 ? Ds1 : NULL);
+        sa_sint_t s0 = cache[i + prefetch_distance + 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0 > 0 ? s0 >> 1 : 0]; libsais16_prefetchw(Is0); const sa_sint_t * Ds0 = &distinct_names[s0 > 0 ? s0 : 0]; libsais16_prefetchw(Ds0); 
+        sa_sint_t s1 = cache[i + prefetch_distance + 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1 > 0 ? s1 >> 1 : 0]; libsais16_prefetchw(Is1); const sa_sint_t * Ds1 = &distinct_names[s1 > 0 ? s1 : 0]; libsais16_prefetchw(Ds1);
         
         sa_sint_t v0 = cache[i + 0].symbol;
         if (v0 >= 0)
@@ -2585,8 +2585,8 @@ static void libsais16_partial_sorting_scan_left_to_right_32s_1k_block_sort(const
     {
         libsais16_prefetchw(&cache[i + 2 * prefetch_distance]);
 
-        sa_sint_t s0 = cache[i + prefetch_distance + 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0]; libsais16_prefetchw(s0 >= 0 ? Is0 : NULL);
-        sa_sint_t s1 = cache[i + prefetch_distance + 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1]; libsais16_prefetchw(s1 >= 0 ? Is1 : NULL);
+        sa_sint_t s0 = cache[i + prefetch_distance + 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0 > 0 ? s0 : 0]; libsais16_prefetchw(Is0);
+        sa_sint_t s1 = cache[i + prefetch_distance + 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1 > 0 ? s1 : 0]; libsais16_prefetchw(Is1);
         
         sa_sint_t v0 = cache[i + 0].symbol;
         if (v0 >= 0)
@@ -3375,8 +3375,8 @@ static sa_sint_t libsais16_partial_sorting_scan_right_to_left_32s_4k(const sa_si
     {
         libsais16_prefetchw(&SA[i - 3 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i - 2 * prefetch_distance - 0]; const sa_sint_t * Ts0 = &T[s0 & ~SUFFIX_GROUP_MARKER] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL); Ts0--; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i - 2 * prefetch_distance - 1]; const sa_sint_t * Ts1 = &T[s1 & ~SUFFIX_GROUP_MARKER] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL); Ts1--; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i - 2 * prefetch_distance - 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 & ~SUFFIX_GROUP_MARKER : 2]; libsais16_prefetchr(Ts0 - 1); libsais16_prefetchr(Ts0 - 2);
+        sa_sint_t s1 = SA[i - 2 * prefetch_distance - 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 & ~SUFFIX_GROUP_MARKER : 2]; libsais16_prefetchr(Ts1 - 1); libsais16_prefetchr(Ts1 - 2);
         sa_sint_t s2 = SA[i - 1 * prefetch_distance - 0]; if (s2 > 0) { const fast_sint_t Ts2 = T[(s2 & ~SUFFIX_GROUP_MARKER) - 1]; libsais16_prefetchw(&induction_bucket[Ts2]); libsais16_prefetchw(&distinct_names[BUCKETS_INDEX2(Ts2, 0)]); }
         sa_sint_t s3 = SA[i - 1 * prefetch_distance - 1]; if (s3 > 0) { const fast_sint_t Ts3 = T[(s3 & ~SUFFIX_GROUP_MARKER) - 1]; libsais16_prefetchw(&induction_bucket[Ts3]); libsais16_prefetchw(&distinct_names[BUCKETS_INDEX2(Ts3, 0)]); }
 
@@ -3417,8 +3417,8 @@ static void libsais16_partial_sorting_scan_right_to_left_32s_1k(const sa_sint_t 
     {
         libsais16_prefetchw(&SA[i - 3 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i - 2 * prefetch_distance - 0]; const sa_sint_t * Ts0 = &T[s0] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i - 2 * prefetch_distance - 1]; const sa_sint_t * Ts1 = &T[s1] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i - 2 * prefetch_distance - 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 1]; libsais16_prefetchr(Ts0 - 1);
+        sa_sint_t s1 = SA[i - 2 * prefetch_distance - 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 1]; libsais16_prefetchr(Ts1 - 1);
         sa_sint_t s2 = SA[i - 1 * prefetch_distance - 0]; if (s2 > 0) { libsais16_prefetchw(&induction_bucket[T[s2 - 1]]); libsais16_prefetchr(&T[s2] - 2); }
         sa_sint_t s3 = SA[i - 1 * prefetch_distance - 1]; if (s3 > 0) { libsais16_prefetchw(&induction_bucket[T[s3 - 1]]); libsais16_prefetchr(&T[s3] - 2); }
 
@@ -3469,8 +3469,8 @@ static void libsais16_partial_sorting_scan_right_to_left_32s_4k_block_gather(con
     {
         libsais16_prefetchw(&SA[i + 2 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 & ~SUFFIX_GROUP_MARKER] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL); Ts0--; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 & ~SUFFIX_GROUP_MARKER] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL); Ts1--; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 & ~SUFFIX_GROUP_MARKER : 2]; libsais16_prefetchr(Ts0 - 1); libsais16_prefetchr(Ts0 - 2);
+        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 & ~SUFFIX_GROUP_MARKER : 2]; libsais16_prefetchr(Ts1 - 1); libsais16_prefetchr(Ts1 - 2);
 
         libsais16_prefetchw(&cache[i + prefetch_distance]);
 
@@ -3493,8 +3493,8 @@ static void libsais16_partial_sorting_scan_right_to_left_32s_1k_block_gather(con
     {
         libsais16_prefetchw(&SA[i + 2 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL); Ts0--; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL); Ts1--; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 2]; libsais16_prefetchr(Ts0 - 1); libsais16_prefetchr(Ts0 - 2);
+        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 2]; libsais16_prefetchr(Ts1 - 1); libsais16_prefetchr(Ts1 - 2);
 
         libsais16_prefetchw(&cache[i + prefetch_distance]);
 
@@ -3548,8 +3548,8 @@ static sa_sint_t libsais16_partial_sorting_scan_right_to_left_32s_4k_block_sort(
     {
         libsais16_prefetchw(&cache[i - 2 * prefetch_distance]);
 
-        sa_sint_t s0 = cache[i - prefetch_distance - 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0 >> 1]; libsais16_prefetchw(s0 >= 0 ? Is0 : NULL); const sa_sint_t * Ds0 = &distinct_names[s0]; libsais16_prefetchw(s0 >= 0 ? Ds0 : NULL); 
-        sa_sint_t s1 = cache[i - prefetch_distance - 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1 >> 1]; libsais16_prefetchw(s1 >= 0 ? Is1 : NULL); const sa_sint_t * Ds1 = &distinct_names[s1]; libsais16_prefetchw(s1 >= 0 ? Ds1 : NULL);
+        sa_sint_t s0 = cache[i - prefetch_distance - 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0 > 0 ? s0 >> 1 : 0]; libsais16_prefetchw(Is0); const sa_sint_t * Ds0 = &distinct_names[s0 > 0 ? s0 : 0]; libsais16_prefetchw(Ds0); 
+        sa_sint_t s1 = cache[i - prefetch_distance - 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1 > 0 ? s1 >> 1 : 0]; libsais16_prefetchw(Is1); const sa_sint_t * Ds1 = &distinct_names[s1 > 0 ? s1 : 0]; libsais16_prefetchw(Ds1);
 
         sa_sint_t v0 = cache[i - 0].symbol;
         if (v0 >= 0)
@@ -3588,8 +3588,8 @@ static void libsais16_partial_sorting_scan_right_to_left_32s_1k_block_sort(const
     {
         libsais16_prefetchw(&cache[i - 2 * prefetch_distance]);
 
-        sa_sint_t s0 = cache[i - prefetch_distance - 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0]; libsais16_prefetchw(s0 >= 0 ? Is0 : NULL);
-        sa_sint_t s1 = cache[i - prefetch_distance - 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1]; libsais16_prefetchw(s1 >= 0 ? Is1 : NULL);
+        sa_sint_t s0 = cache[i - prefetch_distance - 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0 > 0 ? s0 : 0]; libsais16_prefetchw(Is0);
+        sa_sint_t s1 = cache[i - prefetch_distance - 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1 > 0 ? s1 : 0]; libsais16_prefetchw(Is1);
 
         sa_sint_t v0 = cache[i - 0].symbol;
         if (v0 >= 0)
@@ -4809,8 +4809,8 @@ static void libsais16_final_sorting_scan_left_to_right_32s(const sa_sint_t * RES
     {
         libsais16_prefetchw(&SA[i + 3 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i + 2 * prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i + 2 * prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i + 2 * prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 1]; libsais16_prefetchr(Ts0 - 1);
+        sa_sint_t s1 = SA[i + 2 * prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 1]; libsais16_prefetchr(Ts1 - 1);
         sa_sint_t s2 = SA[i + 1 * prefetch_distance + 0]; if (s2 > 0) { libsais16_prefetchw(&induction_bucket[T[s2 - 1]]); libsais16_prefetchr(&T[s2] - 2); }
         sa_sint_t s3 = SA[i + 1 * prefetch_distance + 1]; if (s3 > 0) { libsais16_prefetchw(&induction_bucket[T[s3 - 1]]); libsais16_prefetchr(&T[s3] - 2); }
 
@@ -4929,8 +4929,8 @@ static void libsais16_final_sorting_scan_left_to_right_32s_block_gather(const sa
     {
         libsais16_prefetchw(&SA[i + 2 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL); Ts0--; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL); Ts1--; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 2]; libsais16_prefetchr(Ts0 - 1); libsais16_prefetchr(Ts0 - 2);
+        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 2]; libsais16_prefetchr(Ts1 - 1); libsais16_prefetchr(Ts1 - 2);
 
         libsais16_prefetchw(&cache[i + prefetch_distance]);
 
@@ -4953,8 +4953,8 @@ static void libsais16_final_sorting_scan_left_to_right_32s_block_sort(const sa_s
     {
         libsais16_prefetchw(&cache[i + 2 * prefetch_distance]);
 
-        sa_sint_t s0 = cache[i + prefetch_distance + 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0]; libsais16_prefetchw(s0 >= 0 ? Is0 : NULL);
-        sa_sint_t s1 = cache[i + prefetch_distance + 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1]; libsais16_prefetchw(s1 >= 0 ? Is1 : NULL);
+        sa_sint_t s0 = cache[i + prefetch_distance + 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0 > 0 ? s0 : 0]; libsais16_prefetchw(Is0);
+        sa_sint_t s1 = cache[i + prefetch_distance + 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1 > 0 ? s1 : 0]; libsais16_prefetchw(Is1);
         
         sa_sint_t v0 = cache[i + 0].symbol;
         if (v0 >= 0)
@@ -5460,8 +5460,8 @@ static void libsais16_final_sorting_scan_right_to_left_32s(const sa_sint_t * RES
     {
         libsais16_prefetchw(&SA[i - 3 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i - 2 * prefetch_distance - 0]; const sa_sint_t * Ts0 = &T[s0] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i - 2 * prefetch_distance - 1]; const sa_sint_t * Ts1 = &T[s1] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i - 2 * prefetch_distance - 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 1]; libsais16_prefetchr(Ts0 - 1);
+        sa_sint_t s1 = SA[i - 2 * prefetch_distance - 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 1]; libsais16_prefetchr(Ts1 - 1);
         sa_sint_t s2 = SA[i - 1 * prefetch_distance - 0]; if (s2 > 0) { libsais16_prefetchw(&induction_bucket[T[s2 - 1]]); libsais16_prefetchr(&T[s2] - 2); }
         sa_sint_t s3 = SA[i - 1 * prefetch_distance - 1]; if (s3 > 0) { libsais16_prefetchw(&induction_bucket[T[s3 - 1]]); libsais16_prefetchr(&T[s3] - 2); }
 
@@ -5627,8 +5627,8 @@ static void libsais16_final_sorting_scan_right_to_left_32s_block_gather(const sa
     {
         libsais16_prefetchw(&SA[i + 2 * prefetch_distance]);
 
-        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0] - 1; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL); Ts0--; libsais16_prefetchr(s0 > 0 ? Ts0 : NULL);
-        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1] - 1; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL); Ts1--; libsais16_prefetchr(s1 > 0 ? Ts1 : NULL);
+        sa_sint_t s0 = SA[i + prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 2]; libsais16_prefetchr(Ts0 - 1); libsais16_prefetchr(Ts0 - 2);
+        sa_sint_t s1 = SA[i + prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 2]; libsais16_prefetchr(Ts1 - 1); libsais16_prefetchr(Ts1 - 2);
 
         libsais16_prefetchw(&cache[i + prefetch_distance]);
 
@@ -5651,8 +5651,8 @@ static void libsais16_final_sorting_scan_right_to_left_32s_block_sort(const sa_s
     {
         libsais16_prefetchw(&cache[i - 2 * prefetch_distance]);
 
-        sa_sint_t s0 = cache[i - prefetch_distance - 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0]; libsais16_prefetchw(s0 >= 0 ? Is0 : NULL);
-        sa_sint_t s1 = cache[i - prefetch_distance - 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1]; libsais16_prefetchw(s1 >= 0 ? Is1 : NULL);
+        sa_sint_t s0 = cache[i - prefetch_distance - 0].symbol; const sa_sint_t * Is0 = &induction_bucket[s0 > 0 ? s0 : 0]; libsais16_prefetchw(Is0);
+        sa_sint_t s1 = cache[i - prefetch_distance - 1].symbol; const sa_sint_t * Is1 = &induction_bucket[s1 > 0 ? s1 : 0]; libsais16_prefetchw(Is1);
 
         sa_sint_t v0 = cache[i - 0].symbol;
         if (v0 >= 0)
@@ -6240,10 +6240,10 @@ static sa_sint_t libsais16_renumber_unique_and_nonunique_lms_suffixes_32s(sa_sin
         libsais16_prefetchw(&SAm[((sa_uint_t)SA[i + 2 * prefetch_distance + 2]) >> 1]);
         libsais16_prefetchw(&SAm[((sa_uint_t)SA[i + 2 * prefetch_distance + 3]) >> 1]);
 
-        sa_uint_t q0 = (sa_uint_t)SA[i + prefetch_distance + 0]; const sa_sint_t * Tq0 = &T[q0]; libsais16_prefetchw(SAm[q0 >> 1] < 0 ? Tq0 : NULL);
-        sa_uint_t q1 = (sa_uint_t)SA[i + prefetch_distance + 1]; const sa_sint_t * Tq1 = &T[q1]; libsais16_prefetchw(SAm[q1 >> 1] < 0 ? Tq1 : NULL);
-        sa_uint_t q2 = (sa_uint_t)SA[i + prefetch_distance + 2]; const sa_sint_t * Tq2 = &T[q2]; libsais16_prefetchw(SAm[q2 >> 1] < 0 ? Tq2 : NULL);
-        sa_uint_t q3 = (sa_uint_t)SA[i + prefetch_distance + 3]; const sa_sint_t * Tq3 = &T[q3]; libsais16_prefetchw(SAm[q3 >> 1] < 0 ? Tq3 : NULL);
+        sa_uint_t q0 = (sa_uint_t)SA[i + prefetch_distance + 0]; sa_sint_t * RESTRICT Tq0 = &T[q0]; libsais16_prefetchw(SAm[q0 >> 1] < 0 ? Tq0 : &SAm[q0 >> 1]);
+        sa_uint_t q1 = (sa_uint_t)SA[i + prefetch_distance + 1]; sa_sint_t * RESTRICT Tq1 = &T[q1]; libsais16_prefetchw(SAm[q1 >> 1] < 0 ? Tq1 : &SAm[q1 >> 1]);
+        sa_uint_t q2 = (sa_uint_t)SA[i + prefetch_distance + 2]; sa_sint_t * RESTRICT Tq2 = &T[q2]; libsais16_prefetchw(SAm[q2 >> 1] < 0 ? Tq2 : &SAm[q2 >> 1]);
+        sa_uint_t q3 = (sa_uint_t)SA[i + prefetch_distance + 3]; sa_sint_t * RESTRICT Tq3 = &T[q3]; libsais16_prefetchw(SAm[q3 >> 1] < 0 ? Tq3 : &SAm[q3 >> 1]);
 
         sa_uint_t p0 = (sa_uint_t)SA[i + 0]; sa_sint_t s0 = SAm[p0 >> 1]; if (s0 < 0) { T[p0] |= SAINT_MIN; f++; s0 = i + 0 + SAINT_MIN + f; } SAm[p0 >> 1] = s0 - f;
         sa_uint_t p1 = (sa_uint_t)SA[i + 1]; sa_sint_t s1 = SAm[p1 >> 1]; if (s1 < 0) { T[p1] |= SAINT_MIN; f++; s1 = i + 1 + SAINT_MIN + f; } SAm[p1 >> 1] = s1 - f;
