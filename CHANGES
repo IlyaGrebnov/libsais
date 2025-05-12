@@ -1,3 +1,6 @@
+Changes in 2.10.1 (May 11, 2025)
+- No functional changes, slightly improved performance.
+
 Changes in 2.10.0 (April 12, 2025)
 - Improved performance, with noticeable gains on ARM architecture.
 - Fixed compiler warnings and addressed undefined behavior.

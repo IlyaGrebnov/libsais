@@ -1,6 +1,6 @@
 # libsais
 
-The libsais is a library for fast (see [Benchmarks](#benchmarks) below) linear time suffix array, longest common prefix array and Burrows-Wheeler transform construction based on induced sorting algorithm described in the following papers: 
+The libsais library provides fast (see [Benchmarks](#benchmarks) below) linear-time construction of suffix array (SA), generalized suffix array (GSA), longest common prefix (LCP) array, permuted LCP (PLCP) array, Burrows-Wheeler transform (BWT) and inverse BWT, based on the induced sorting algorithm described in the following papers (with optional OpenMP support for multi-core parallel construction):
 * Ge Nong, Sen Zhang, Wai Hong Chan *Two Efficient Algorithms for Linear Suffix Array Construction*, 2009
 * Juha Karkkainen, Giovanni Manzini, Simon J. Puglisi *Permuted Longest-Common-Prefix Array*, 2009
 * Nataliya Timoshevskaya, Wu-chun Feng *SAIS-OPT: On the characterization and optimization of the SA-IS algorithm for suffix array construction*, 2014
@@ -23,6 +23,8 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+* May 11, 2025 (2.10.1)
+  * No functional changes, slightly improved performance.
 * April 12, 2025 (2.10.0)
   * Improved performance, with noticeable gains on ARM architecture.
   * Fixed compiler warnings and addressed undefined behavior.
@@ -82,7 +84,7 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
   * Initial release.
 
 ## Versions of the libsais
-* [libsais.c](src/libsais.c) (and corresponding [libsais.h](include/libsais.h)) is for suffix array, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
+* [libsais.c](src/libsais.c) (and corresponding [libsais.h](include/libsais.h)) is for suffix array, GSA, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
   * [libsais64.c](src/libsais64.c) (and corresponding [libsais64.h](include/libsais64.h)) is optional extension of the library for inputs larger or equlas to 2GB (2147483648 bytes).
   * This versions of the library could also be used to construct suffix array of an integer array (with a caveat that input array must be mutable).
 * [libsais16.c](src/libsais16.c) + [libsais16x64.c](src/libsais16x64.c) (and corresponding [libsais16.h](include/libsais16.h) + [libsais16x64.h](include/libsais16x64.h)) is independent version of the library for 16-bit inputs.
@@ -95,7 +97,7 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
     * @param T [0..n-1] The input string.
     * @param SA [0..n-1+fs] The output array of suffixes.
     * @param n The length of the given string.
-    * @param fs Extra space available at the end of SA array (0 should be enough for most cases).
+    * @param fs The extra space available at the end of SA array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
@@ -114,28 +116,38 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
     int32_t libsais_int(int32_t * T, int32_t * SA, int32_t n, int32_t k, int32_t fs);
 
     /**
-    * Constructs the burrows-wheeler transformed string of a given string.
+    * Constructs the burrows-wheeler transformed string (BWT) of a given string.
     * @param T [0..n-1] The input string.
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n-1+fs] The temporary array.
     * @param n The length of the given string.
-    * @param fs Extra space available at the end of A array (0 should be enough for most cases).
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
     * @param freq [0..255] The output symbol frequency table (can be NULL).
     * @return The primary index if no error occurred, -1 or -2 otherwise.
     */
     int32_t libsais_bwt(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, int32_t fs, int32_t * freq);
 
     /**
-    * Constructs the original string from a given burrows-wheeler transformed string with primary index.
+    * Constructs the original string from a given burrows-wheeler transformed string (BWT) with primary index.
     * @param T [0..n-1] The input string.
     * @param U [0..n-1] The output string (can be T).
     * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
     * @param n The length of the given string.
-    * @param freq [0..255] The input symbol frequency table (can be NULL).                	
+    * @param freq [0..255] The input symbol frequency table (can be NULL).
     * @param i The primary index.
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     int32_t libsais_unbwt(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t i);
+
+    /**
+    * Constructs the permuted longest common prefix array (PLCP) of a given string and a suffix array.
+    * @param T [0..n-1] The input string.
+    * @param SA [0..n-1] The input suffix array.
+    * @param PLCP [0..n-1] The output permuted longest common prefix array.
+    * @param n The length of the string and the suffix array.
+    * @return 0 if no error occurred, -1 otherwise.
+    */
+    int32_t libsais_plcp(const uint8_t * T, const int32_t * SA, int32_t * PLCP, int32_t n);
 ```
 
 ## Example installation using [CPM](https://github.com/cpm-cmake/CPM.cmake)
@@ -169,17 +181,17 @@ The SA-IS algorithm is quite elegant, yet implementing it efficiently presents m
             libsais_prefetchw(&buckets[BUCKETS_INDEX4(T[i - prefetch_distance - 2], 0)]);
             libsais_prefetchw(&buckets[BUCKETS_INDEX4(T[i - prefetch_distance - 3], 0)]);
 
-            c1 = T[i - 0]; s = (s << 1) + (fast_uint_t)(c1 > (c0 - (fast_sint_t)(s & 1))); SA[m] = (sa_sint_t)(i + 1); m -= ((s & 3) == 1);
-            buckets[BUCKETS_INDEX4((fast_uint_t)c0, s & 3)]++;
+            c1 = T[i - 0]; f1 = (fast_uint_t)(c1 > (c0 - (fast_sint_t)(f0))); SA[m] = (sa_sint_t)(i + 1); m -= (f1 & ~f0);
+            buckets[BUCKETS_INDEX4((fast_uint_t)c0, f0 + f0 + f1)]++;
 
-            c0 = T[i - 1]; s = (s << 1) + (fast_uint_t)(c0 > (c1 - (fast_sint_t)(s & 1))); SA[m] = (sa_sint_t)(i - 0); m -= ((s & 3) == 1);
-            buckets[BUCKETS_INDEX4((fast_uint_t)c1, s & 3)]++;
+            c0 = T[i - 1]; f0 = (fast_uint_t)(c0 > (c1 - (fast_sint_t)(f1))); SA[m] = (sa_sint_t)(i - 0); m -= (f0 & ~f1);
+            buckets[BUCKETS_INDEX4((fast_uint_t)c1, f1 + f1 + f0)]++;
 
-            c1 = T[i - 2]; s = (s << 1) + (fast_uint_t)(c1 > (c0 - (fast_sint_t)(s & 1))); SA[m] = (sa_sint_t)(i - 1); m -= ((s & 3) == 1);
-            buckets[BUCKETS_INDEX4((fast_uint_t)c0, s & 3)]++;
+            c1 = T[i - 2]; f1 = (fast_uint_t)(c1 > (c0 - (fast_sint_t)(f0))); SA[m] = (sa_sint_t)(i - 1); m -= (f1 & ~f0);
+            buckets[BUCKETS_INDEX4((fast_uint_t)c0, f0 + f0 + f1)]++;
 
-            c0 = T[i - 3]; s = (s << 1) + (fast_uint_t)(c0 > (c1 - (fast_sint_t)(s & 1))); SA[m] = (sa_sint_t)(i - 2); m -= ((s & 3) == 1);
-            buckets[BUCKETS_INDEX4((fast_uint_t)c1, s & 3)]++;
+            c0 = T[i - 3]; f0 = (fast_uint_t)(c0 > (c1 - (fast_sint_t)(f1))); SA[m] = (sa_sint_t)(i - 2); m -= (f0 & ~f1);
+            buckets[BUCKETS_INDEX4((fast_uint_t)c1, f1 + f1 + f0)]++;
         }
 ```
 * To sort LMS substrings lexicographically and compute their ranks, the libsais algorithm begins by gathering LMS-type positions as they appear in the string, placing them at the end of the suffix array. The library then employs two passes of induced sorting, which concludes with these same LMS-type positions ordered lexicographically at the beginning of the suffix array. Once all LMS-type positions are sorted, the ranks of the LMS substrings are computed by inspecting each pair of adjacent positions to determine if the corresponding LMS substrings are identical. If they are the same, they receive the same rank; otherwise, the rank is incremented by one. 
