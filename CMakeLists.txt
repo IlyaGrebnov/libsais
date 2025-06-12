@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(
     libsais
-    VERSION 2.10.1
+    VERSION 2.10.2
     LANGUAGES C
     DESCRIPTION "The libsais library provides fast linear-time construction of suffix array (SA), generalized suffix array (GSA), longest common prefix (LCP) array, permuted LCP (PLCP) array, Burrows-Wheeler transform (BWT) and inverse BWT based on the induced sorting algorithm with optional OpenMP support for multi-core parallel construction."
 )

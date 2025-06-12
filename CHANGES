@@ -1,3 +1,6 @@
+Changes in 2.10.2 (June 10, 2025)
+- Improved performance of suffix array and burrows wheeler transform construction on degenerate inputs.
+
 Changes in 2.10.1 (May 11, 2025)
 - No functional changes, slightly improved performance.
 
