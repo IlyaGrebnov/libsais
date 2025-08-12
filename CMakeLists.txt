@@ -2,10 +2,13 @@ cmake_minimum_required(VERSION 3.10)
 
 project(
     libsais
-    VERSION 2.10.2
+    VERSION 2.10.3
     LANGUAGES C
     DESCRIPTION "The libsais library provides fast linear-time construction of suffix array (SA), generalized suffix array (GSA), longest common prefix (LCP) array, permuted LCP (PLCP) array, Burrows-Wheeler transform (BWT) and inverse BWT based on the induced sorting algorithm with optional OpenMP support for multi-core parallel construction."
 )
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -22,7 +25,13 @@ endif()
 
 add_library(libsais ${LIBSAIS_LIBRARY_TYPE})
 
-set_target_properties(libsais PROPERTIES PREFIX "" IMPORT_PREFIX "")
+set_target_properties(libsais PROPERTIES
+    PREFIX ""
+    IMPORT_PREFIX ""
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+    POSITION_INDEPENDENT_CODE ON
+)
 
 target_sources(libsais PRIVATE
     include/libsais.h
@@ -41,7 +50,7 @@ endif()
 
 if(LIBSAIS_USE_OPENMP AND OpenMP_C_FOUND)
     target_compile_definitions(libsais PUBLIC LIBSAIS_OPENMP)
-    target_link_libraries(libsais PRIVATE OpenMP::OpenMP_C)
+    target_link_libraries(libsais PUBLIC OpenMP::OpenMP_C)
 endif()
 
 if(LIBSAIS_BUILD_SHARED_LIB)
@@ -52,4 +61,35 @@ endif()
 target_include_directories(libsais PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+)
+
+install(
+    TARGETS libsais
+    EXPORT libsaisTargets
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    EXPORT libsaisTargets
+    FILE libsaisConfig.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libsais
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/libsaisConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/libsaisConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libsais
 )

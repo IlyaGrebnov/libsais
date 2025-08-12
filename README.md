@@ -23,6 +23,10 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
 ## Changes
+_For the full changelog, see [CHANGES](CHANGES)._
+
+* August 12, 2025 (2.10.3)
+  * No functional changes, added CMake install and export package rules.
 * June 10, 2025 (2.10.2)
   * Improved performance of suffix array and burrows wheeler transform construction on degenerate inputs.
 * May 11, 2025 (2.10.1)
@@ -64,26 +68,6 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
   * Improved cache coherence for ARMv8 architecture.
 * April 12, 2022 (2.7.0)
   * Support for longest common prefix array (LCP) construction.
-* January 1, 2022 (2.6.5)
-  * Exposed functions to construct suffix array of a given integer array.
-  * Improved detection of various compiler intrinsics.
-  * Capped free space parameter to avoid crashing due to 32-bit integer overflow.
-* October 21, 2021 (2.6.0)
-  * libsais16 for 16-bit inputs.
-* October 15, 2021 (2.5.0)
-  * Support for optional symbol frequency tables.
-* July 14, 2021 (2.4.0)
-  * Reverse Burrows-Wheeler transform.
-* June 23, 2021 (2.3.0)
-  * Burrows-Wheeler transform with auxiliary indexes.
-* April 27, 2021 (2.2.0)
-  * libsais64 for inputs larger than 2GB.
-* April 19, 2021 (2.1.0)
-  * Additional OpenMP acceleration.
-* April 4, 2021 (2.0.0)
-  * OpenMP acceleration. 
-* February 23, 2021 (1.0.0)
-  * Initial release.
 
 ## Versions of the libsais
 * [libsais.c](src/libsais.c) (and corresponding [libsais.h](include/libsais.h)) is for suffix array, GSA, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
