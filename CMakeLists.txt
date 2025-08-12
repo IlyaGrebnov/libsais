@@ -24,15 +24,24 @@ add_library(libsais ${LIBSAIS_LIBRARY_TYPE})
 
 set_target_properties(libsais PROPERTIES PREFIX "" IMPORT_PREFIX "")
 
-target_sources(libsais PRIVATE
-    include/libsais.h
-    include/libsais16.h
-    include/libsais16x64.h
-    include/libsais64.h
-    src/libsais.c
-    src/libsais16.c
-    src/libsais16x64.c
-    src/libsais64.c
+target_sources(libsais
+    PRIVATE
+        src/libsais.c
+        src/libsais16.c
+        src/libsais16x64.c
+        src/libsais64.c
+)
+
+target_sources(libsais
+    PUBLIC
+        FILE_SET HEADERS
+    BASE_DIRS
+        include
+    FILES
+        include/libsais.h
+        include/libsais16.h
+        include/libsais16x64.h
+        include/libsais64.h
 )
 
 if(LIBSAIS_USE_OPENMP)
@@ -53,3 +62,6 @@ target_include_directories(libsais PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+
+install(TARGETS libsais LIBRARY)
+install(TARGETS libsais FILE_SET HEADERS)
