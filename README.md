@@ -25,6 +25,8 @@ The libsais is released under the [Apache License Version 2.0](LICENSE "Apache l
 ## Changes
 _For the full changelog, see [CHANGES](CHANGES)._
 
+* September 1, 2025 (2.10.4)
+  * Tuned prefetch distance for improved throughput.
 * August 12, 2025 (2.10.3)
   * No functional changes, added CMake install and export package rules.
 * June 10, 2025 (2.10.2)
@@ -56,18 +58,6 @@ _For the full changelog, see [CHANGES](CHANGES)._
 * March 3, 2024 (2.8.0)
   * Implemented permuted longest common prefix array (PLCP) construction of an integer array.
   * Fixed compilation error when compiling the library with OpenMP enabled.
-* February 26, 2024 (2.7.5)
-  * Improved performance of suffix array and burrows wheeler transform construction on degenerate inputs.
-* February 23, 2024 (2.7.4)
-  * Resolved strict aliasing violation resulted in invalid code generation by Intel compiler.
-* April 21, 2023 (2.7.3)
-  * CMake script for library build and integration with other projects.
-* April 18, 2023 (2.7.2)
-  * Fixed out-of-bound memory access issue for large inputs (libsais64).
-* June 19, 2022 (2.7.1)
-  * Improved cache coherence for ARMv8 architecture.
-* April 12, 2022 (2.7.0)
-  * Support for longest common prefix array (LCP) construction.
 
 ## Versions of the libsais
 * [libsais.c](src/libsais.c) (and corresponding [libsais.h](include/libsais.h)) is for suffix array, GSA, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
@@ -141,7 +131,7 @@ _For the full changelog, see [CHANGES](CHANGES)._
 CPMAddPackage(
   NAME libsais
   GITHUB_REPOSITORY IlyaGrebnov/libsais
-  GIT_TAG v2.8.5
+  GIT_TAG v2.10.4
   OPTIONS
     "LIBSAIS_USE_OPENMP OFF"
     "LIBSAIS_BUILD_SHARED_LIB OFF"
