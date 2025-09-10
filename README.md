@@ -1,6 +1,6 @@
 # libsais
 
-The libsais library provides fast (see [Benchmarks](#benchmarks) below) linear-time construction of suffix array (SA), generalized suffix array (GSA), longest common prefix (LCP) array, permuted LCP (PLCP) array, Burrows-Wheeler transform (BWT) and inverse BWT, based on the induced sorting algorithm described in the following papers (with optional OpenMP support for multi-core parallel construction):
+The libsais library provides fast (see [Benchmarks](#benchmarks) below) linear-time construction of suffix array (SA), generalized suffix array (GSA), longest common prefix (LCP) array, permuted LCP (PLCP) array, Burrows-Wheeler transform (BWT) and inverse BWT, based on the induced sorting algorithm described in the following papers (with optional OpenMP support for multi-threaded parallel construction):
 * Ge Nong, Sen Zhang, Wai Hong Chan *Two Efficient Algorithms for Linear Suffix Array Construction*, 2009
 * Juha Karkkainen, Giovanni Manzini, Simon J. Puglisi *Permuted Longest-Common-Prefix Array*, 2009
 * Nataliya Timoshevskaya, Wu-chun Feng *SAIS-OPT: On the characterization and optimization of the SA-IS algorithm for suffix array construction*, 2014
@@ -22,6 +22,9 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 ## License
 The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
 
+## Multi-threading
+The libsais is memory-bound, so performance scales primarily with memory bandwidth and concurrency, not raw compute. The optimal number of threads for suffix array construction depends on CPU and memory architecture, as different systems (DDR4 vs DDR5, Intel vs AMD, single- vs multi-CCD) saturate memory at different points with maximum throughput generally following the number of memory channels rather than total core count. The x86-64 dual-channel systems typically saturate near 8 threads, but in practice may show good scaling at 6, 12 or even 16 threads.
+
 ## Changes
 _For the full changelog, see [CHANGES](CHANGES)._
 
@@ -41,23 +44,6 @@ _For the full changelog, see [CHANGES](CHANGES)._
 * March 16, 2025 (2.9.0)
   * Support for generalized suffix array (GSA) construction.
   * Support for longest common prefix array (LCP) construction for generalized suffix array (GSA).
-* January 16, 2025 (2.8.7)
-  * Restore the input array after suffix array construction (libsais64 & libsais16x64).
-* November 18, 2024 (2.8.6)
-  * Fixed out-of-bound memory access issue for large inputs.
-* July 31, 2024 (2.8.5)
-  * Miscellaneous changes to reduce compiler warnings about implicit functions.
-* June 13, 2024 (2.8.4)
-  * Additional OpenMP acceleration (libsais16 & libsais16x64).
-* June 11, 2024 (2.8.3)
-  * Implemented suffix array construction of a long 16-bit array (libsais16x64).
-* May 27, 2024 (2.8.2)
-  * Implemented suffix array construction of a long 64-bit array (libsais64).
-* April 5, 2024 (2.8.1)
-  * Fixed out-of-bound memory access issue for large inputs (libsais64).
-* March 3, 2024 (2.8.0)
-  * Implemented permuted longest common prefix array (PLCP) construction of an integer array.
-  * Fixed compilation error when compiling the library with OpenMP enabled.
 
 ## Versions of the libsais
 * [libsais.c](src/libsais.c) (and corresponding [libsais.h](include/libsais.h)) is for suffix array, GSA, PLCP, LCP, forward BWT and reverse BWT construction over 8-bit inputs smaller than 2GB (2147483648 bytes).
