@@ -20,7 +20,7 @@ The libsais provides simple C99 API to construct suffix array and Burrows-Wheele
 > * The libsais is sensitive to fast memory and software prefetching and might not be suitable for some workloads. Please benchmark yourself.
 
 ## License
-The libsais is released under the [Apache License Version 2.0](LICENSE "Apache license")
+The libsais is released under the [Apache License Version 2.0 with LLVM Exceptions](LICENSE "Apache license with LLVM Exceptions")
 
 ## Multi-threading
 The libsais is memory-bound, so performance scales primarily with memory bandwidth and concurrency, not raw compute. The optimal number of threads for suffix array construction depends on CPU and memory architecture, as different systems (DDR4 vs DDR5, Intel vs AMD, single- vs multi-CCD) saturate memory at different points with maximum throughput generally following the number of memory channels rather than total core count. The x86-64 dual-channel systems typically saturate near 8 threads, but in practice may show good scaling at 6, 12 or even 16 threads.
