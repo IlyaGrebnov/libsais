@@ -126,6 +126,26 @@ CPMAddPackage(
 target_link_libraries(<your target> libsais)
 ```
 
+## Example installation using [Bazel](https://bazel.build)
+Add the dependency to your `MODULE.bazel`:
+```python
+bazel_dep(name = "libsais", version = "2.10.4.bcr.1")
+```
+Then depend on the variant you need, where the target name matches the header:
+```python
+cc_binary(
+    name = "<your target>",
+    srcs = ["main.c"],
+    deps = ["@libsais//:libsais64"],
+)
+```
+The four targets `libsais`, `libsais16`, `libsais64` and `libsais16x64` are built
+separately, so a binary only links the variants it actually uses. OpenMP is off by
+default, as in the CMake build, and is enabled with the `openmp` flag:
+```sh
+bazel build <your target> --@libsais//:openmp
+```
+
 # Algorithm description
 The libsais uses the SA-IS (Suffix Array Induced Sorting) algorithm to construct both the suffix array and the Burrows-Wheeler transform through recursive decomposition and induced sorting:
 * Initially, the algorithm classifies each position in a string as either an S-type or an L-type, based on whether the suffix starting at that position is lexicographically smaller or larger than the suffix at the adjacent right position. Positions identified as S-type, which have an adjacent left L-type position, are further categorized as LMS-type (Leftmost S-type) positions. Next, the algorithm splits the input string into LMS substrings, which start at an LMS-type position and extend up to the next adjacent LMS-type position. These LMS substrings are then lexicographically sorted through induced sorting and subsequently replaced in the input string with their corresponding sorted ranks, thus forming a new, compacted string. This compacted string reduces the problem size, enabling the algorithm to perform a recursive decomposition in which it is reapplied to construct the suffix array for the compacted string. And at the end of the recursive call, the suffix array for the input string is constructed from the suffix array of the compacted string using another round of induced sorting.

@@ -1,0 +1,3 @@
+# Bazel convenience symlinks and lock file.
+/bazel-*
+MODULE.bazel.lock
