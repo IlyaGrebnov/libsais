@@ -2406,8 +2406,8 @@ static void libsais16x64_partial_sorting_scan_left_to_right_32s_1k(const sa_sint
 
         sa_sint_t s0 = SA[i + 2 * prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 1]; libsais16x64_prefetchr(Ts0 - 1);
         sa_sint_t s1 = SA[i + 2 * prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 1]; libsais16x64_prefetchr(Ts1 - 1);
-        sa_sint_t s2 = SA[i + 1 * prefetch_distance + 0]; if (s2 > 0) { libsais16x64_prefetchw(&induction_bucket[T[s2 - 1]]); libsais16x64_prefetchr(&T[s2] - 2); }
-        sa_sint_t s3 = SA[i + 1 * prefetch_distance + 1]; if (s3 > 0) { libsais16x64_prefetchw(&induction_bucket[T[s3 - 1]]); libsais16x64_prefetchr(&T[s3] - 2); }
+        sa_sint_t s2 = SA[i + 1 * prefetch_distance + 0]; const sa_sint_t * Ts2 = &T[s2 > 0 ? s2 : 2]; if (s2 > 0) { libsais16x64_prefetchw(&induction_bucket[Ts2[-1]]); } libsais16x64_prefetchr(Ts2 - 2);
+        sa_sint_t s3 = SA[i + 1 * prefetch_distance + 1]; const sa_sint_t * Ts3 = &T[s3 > 0 ? s3 : 2]; if (s3 > 0) { libsais16x64_prefetchw(&induction_bucket[Ts3[-1]]); } libsais16x64_prefetchr(Ts3 - 2);
 
         sa_sint_t p0 = SA[i + 0]; SA[i + 0] = p0 & SAINT_MAX; if (p0 > 0) { SA[i + 0] = 0; SA[induction_bucket[T[p0 - 1]]++] = (p0 - 1) | (sa_sint_t)((sa_uint_t)(T[p0 - 2] < T[p0 - 1]) << (SAINT_BIT - 1)); }
         sa_sint_t p1 = SA[i + 1]; SA[i + 1] = p1 & SAINT_MAX; if (p1 > 0) { SA[i + 1] = 0; SA[induction_bucket[T[p1 - 1]]++] = (p1 - 1) | (sa_sint_t)((sa_uint_t)(T[p1 - 2] < T[p1 - 1]) << (SAINT_BIT - 1)); }
@@ -3410,8 +3410,8 @@ static void libsais16x64_partial_sorting_scan_right_to_left_32s_1k(const sa_sint
 
         sa_sint_t s0 = SA[i - 2 * prefetch_distance - 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 1]; libsais16x64_prefetchr(Ts0 - 1);
         sa_sint_t s1 = SA[i - 2 * prefetch_distance - 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 1]; libsais16x64_prefetchr(Ts1 - 1);
-        sa_sint_t s2 = SA[i - 1 * prefetch_distance - 0]; if (s2 > 0) { libsais16x64_prefetchw(&induction_bucket[T[s2 - 1]]); libsais16x64_prefetchr(&T[s2] - 2); }
-        sa_sint_t s3 = SA[i - 1 * prefetch_distance - 1]; if (s3 > 0) { libsais16x64_prefetchw(&induction_bucket[T[s3 - 1]]); libsais16x64_prefetchr(&T[s3] - 2); }
+        sa_sint_t s2 = SA[i - 1 * prefetch_distance - 0]; const sa_sint_t * Ts2 = &T[s2 > 0 ? s2 : 2]; if (s2 > 0) { libsais16x64_prefetchw(&induction_bucket[Ts2[-1]]); } libsais16x64_prefetchr(Ts2 - 2);
+        sa_sint_t s3 = SA[i - 1 * prefetch_distance - 1]; const sa_sint_t * Ts3 = &T[s3 > 0 ? s3 : 2]; if (s3 > 0) { libsais16x64_prefetchw(&induction_bucket[Ts3[-1]]); } libsais16x64_prefetchr(Ts3 - 2);
 
         sa_sint_t p0 = SA[i - 0]; if (p0 > 0) { SA[i - 0] = 0; SA[--induction_bucket[T[p0 - 1]]] = (p0 - 1) | (sa_sint_t)((sa_uint_t)(T[p0 - 2] > T[p0 - 1]) << (SAINT_BIT - 1)); }
         sa_sint_t p1 = SA[i - 1]; if (p1 > 0) { SA[i - 1] = 0; SA[--induction_bucket[T[p1 - 1]]] = (p1 - 1) | (sa_sint_t)((sa_uint_t)(T[p1 - 2] > T[p1 - 1]) << (SAINT_BIT - 1)); }
@@ -4802,8 +4802,8 @@ static void libsais16x64_final_sorting_scan_left_to_right_32s(const sa_sint_t * 
 
         sa_sint_t s0 = SA[i + 2 * prefetch_distance + 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 1]; libsais16x64_prefetchr(Ts0 - 1);
         sa_sint_t s1 = SA[i + 2 * prefetch_distance + 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 1]; libsais16x64_prefetchr(Ts1 - 1);
-        sa_sint_t s2 = SA[i + 1 * prefetch_distance + 0]; if (s2 > 0) { libsais16x64_prefetchw(&induction_bucket[T[s2 - 1]]); libsais16x64_prefetchr(&T[s2] - 2); }
-        sa_sint_t s3 = SA[i + 1 * prefetch_distance + 1]; if (s3 > 0) { libsais16x64_prefetchw(&induction_bucket[T[s3 - 1]]); libsais16x64_prefetchr(&T[s3] - 2); }
+        sa_sint_t s2 = SA[i + 1 * prefetch_distance + 0]; const sa_sint_t * Ts2 = &T[s2 > 0 ? s2 : 2]; if (s2 > 0) { libsais16x64_prefetchw(&induction_bucket[Ts2[-1]]); } libsais16x64_prefetchr(Ts2 - 2);
+        sa_sint_t s3 = SA[i + 1 * prefetch_distance + 1]; const sa_sint_t * Ts3 = &T[s3 > 0 ? s3 : 2]; if (s3 > 0) { libsais16x64_prefetchw(&induction_bucket[Ts3[-1]]); } libsais16x64_prefetchr(Ts3 - 2);
 
         sa_sint_t p0 = SA[i + 0]; SA[i + 0] = p0 ^ SAINT_MIN; if (p0 > 0) { p0--; SA[induction_bucket[T[p0]]++] = p0 | (sa_sint_t)((sa_uint_t)(T[p0 - (p0 > 0)] < T[p0]) << (SAINT_BIT - 1)); }
         sa_sint_t p1 = SA[i + 1]; SA[i + 1] = p1 ^ SAINT_MIN; if (p1 > 0) { p1--; SA[induction_bucket[T[p1]]++] = p1 | (sa_sint_t)((sa_uint_t)(T[p1 - (p1 > 0)] < T[p1]) << (SAINT_BIT - 1)); }
@@ -5453,8 +5453,8 @@ static void libsais16x64_final_sorting_scan_right_to_left_32s(const sa_sint_t * 
 
         sa_sint_t s0 = SA[i - 2 * prefetch_distance - 0]; const sa_sint_t * Ts0 = &T[s0 > 0 ? s0 : 1]; libsais16x64_prefetchr(Ts0 - 1);
         sa_sint_t s1 = SA[i - 2 * prefetch_distance - 1]; const sa_sint_t * Ts1 = &T[s1 > 0 ? s1 : 1]; libsais16x64_prefetchr(Ts1 - 1);
-        sa_sint_t s2 = SA[i - 1 * prefetch_distance - 0]; if (s2 > 0) { libsais16x64_prefetchw(&induction_bucket[T[s2 - 1]]); libsais16x64_prefetchr(&T[s2] - 2); }
-        sa_sint_t s3 = SA[i - 1 * prefetch_distance - 1]; if (s3 > 0) { libsais16x64_prefetchw(&induction_bucket[T[s3 - 1]]); libsais16x64_prefetchr(&T[s3] - 2); }
+        sa_sint_t s2 = SA[i - 1 * prefetch_distance - 0]; const sa_sint_t * Ts2 = &T[s2 > 0 ? s2 : 2]; if (s2 > 0) { libsais16x64_prefetchw(&induction_bucket[Ts2[-1]]); } libsais16x64_prefetchr(Ts2 - 2);
+        sa_sint_t s3 = SA[i - 1 * prefetch_distance - 1]; const sa_sint_t * Ts3 = &T[s3 > 0 ? s3 : 2]; if (s3 > 0) { libsais16x64_prefetchw(&induction_bucket[Ts3[-1]]); } libsais16x64_prefetchr(Ts3 - 2);
 
         sa_sint_t p0 = SA[i - 0]; SA[i - 0] = p0 & SAINT_MAX; if (p0 > 0) { p0--; SA[--induction_bucket[T[p0]]] = p0 | (sa_sint_t)((sa_uint_t)(T[p0 - (p0 > 0)] > T[p0]) << (SAINT_BIT - 1)); }
         sa_sint_t p1 = SA[i - 1]; SA[i - 1] = p1 & SAINT_MAX; if (p1 > 0) { p1--; SA[--induction_bucket[T[p1]]] = p1 | (sa_sint_t)((sa_uint_t)(T[p1 - (p1 > 0)] > T[p1]) << (SAINT_BIT - 1)); }
