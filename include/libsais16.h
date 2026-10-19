@@ -3,7 +3,7 @@
 This file is a part of libsais, a library for linear time suffix array,
 longest common prefix array and burrows wheeler transform construction.
 
-   Copyright (c) 2021-2025 Ilya Grebnov <ilya.grebnov@gmail.com>
+   Copyright (c) 2021-2026 Ilya Grebnov <ilya.grebnov@gmail.com>
 
    Licensed under the Apache License, Version 2.0 with LLVM Exceptions
    (the "License"); you may not use this file except in compliance with
@@ -28,9 +28,9 @@ Please see the file LICENSE for full copyright information.
 #define LIBSAIS16_H 1
 
 #define LIBSAIS16_VERSION_MAJOR   2
-#define LIBSAIS16_VERSION_MINOR   10
-#define LIBSAIS16_VERSION_PATCH   4
-#define LIBSAIS16_VERSION_STRING  "2.10.4"
+#define LIBSAIS16_VERSION_MINOR   12
+#define LIBSAIS16_VERSION_PATCH   0
+#define LIBSAIS16_VERSION_STRING  "2.12.0"
 
 #ifdef _WIN32
     #ifdef LIBSAIS_SHARED
@@ -55,6 +55,7 @@ extern "C" {
     /**
     * Creates the libsais16 context that allows reusing allocated memory with each libsais16 operation. 
     * In multi-threaded environments, use one context per thread for parallel executions.
+    * With the extra space fs of at least n / 2, operations using this context allocate no memory.
     * @return the libsais16 context, NULL otherwise.
     */
     LIBSAIS16_API void * libsais16_create_ctx(void);
@@ -63,6 +64,7 @@ extern "C" {
     /**
     * Creates the libsais16 context that allows reusing allocated memory with each parallel libsais16 operation using OpenMP. 
     * In multi-threaded environments, use one context per thread for parallel executions.
+    * With the extra space fs of at least n / 2, operations using this context allocate no memory.
     * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
     * @return the libsais16 context, NULL otherwise.
     */

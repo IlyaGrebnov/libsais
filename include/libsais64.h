@@ -3,7 +3,7 @@
 This file is a part of libsais, a library for linear time suffix array,
 longest common prefix array and burrows wheeler transform construction.
 
-   Copyright (c) 2021-2025 Ilya Grebnov <ilya.grebnov@gmail.com>
+   Copyright (c) 2021-2026 Ilya Grebnov <ilya.grebnov@gmail.com>
 
    Licensed under the Apache License, Version 2.0 with LLVM Exceptions
    (the "License"); you may not use this file except in compliance with
@@ -28,9 +28,9 @@ Please see the file LICENSE for full copyright information.
 #define LIBSAIS64_H 1
 
 #define LIBSAIS64_VERSION_MAJOR   2
-#define LIBSAIS64_VERSION_MINOR   10
-#define LIBSAIS64_VERSION_PATCH   4
-#define LIBSAIS64_VERSION_STRING  "2.10.4"
+#define LIBSAIS64_VERSION_MINOR   12
+#define LIBSAIS64_VERSION_PATCH   0
+#define LIBSAIS64_VERSION_STRING  "2.12.0"
 
 #ifdef _WIN32
     #ifdef LIBSAIS_SHARED
@@ -151,6 +151,18 @@ extern "C" {
     */
     LIBSAIS64_API int64_t libsais64_bwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t r, int64_t * I);
 
+    /**
+    * Constructs the cyclic burrows-wheeler transformed string (BWT) of a given string (rotations sorted without end-of-string symbol, as in bzip2).
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n-1+fs] The temporary array.
+    * @param n The length of the given string.
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
+    * @return The primary index (0-based row of the given string among its sorted rotations) if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_bwt_cyclic(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq);
+
 #if defined(LIBSAIS_OPENMP)
     /**
     * Constructs the burrows-wheeler transformed string (BWT) of a given string in parallel using OpenMP.
@@ -179,6 +191,19 @@ extern "C" {
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     LIBSAIS64_API int64_t libsais64_bwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t r, int64_t * I, int64_t threads);
+
+    /**
+    * Constructs the cyclic burrows-wheeler transformed string (BWT) of a given string (rotations sorted without end-of-string symbol, as in bzip2) in parallel using OpenMP.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n-1+fs] The temporary array.
+    * @param n The length of the given string.
+    * @param fs The extra space available at the end of A array (0 should be enough for most cases).
+    * @param freq [0..255] The output symbol frequency table (can be NULL).
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return The primary index (0-based row of the given string among its sorted rotations) if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_bwt_cyclic_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, int64_t fs, int64_t * freq, int64_t threads);
 #endif
 
     /**
@@ -205,6 +230,18 @@ extern "C" {
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     LIBSAIS64_API int64_t libsais64_unbwt_aux(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t r, const int64_t * I);
+
+    /**
+    * Constructs the original string from a given cyclic burrows-wheeler transformed string (BWT) with primary index.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
+    * @param n The length of the given string.
+    * @param freq [0..255] The input symbol frequency table (can be NULL).
+    * @param i The primary index (0-based row of the original string among its sorted rotations).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_unbwt_cyclic(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t i);
 
 #if defined(LIBSAIS_OPENMP)
     /**
@@ -233,6 +270,19 @@ extern "C" {
     * @return 0 if no error occurred, -1 or -2 otherwise.
     */
     LIBSAIS64_API int64_t libsais64_unbwt_aux_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t r, const int64_t * I, int64_t threads);
+
+    /**
+    * Constructs the original string from a given cyclic burrows-wheeler transformed string (BWT) with primary index in parallel using OpenMP.
+    * @param T [0..n-1] The input string.
+    * @param U [0..n-1] The output string (can be T).
+    * @param A [0..n] The temporary array (NOTE, temporary array must be n + 1 size).
+    * @param n The length of the given string.
+    * @param freq [0..255] The input symbol frequency table (can be NULL).
+    * @param i The primary index (0-based row of the original string among its sorted rotations).
+    * @param threads The number of OpenMP threads to use (can be 0 for OpenMP default).
+    * @return 0 if no error occurred, -1 or -2 otherwise.
+    */
+    LIBSAIS64_API int64_t libsais64_unbwt_cyclic_omp(const uint8_t * T, uint8_t * U, int64_t * A, int64_t n, const int64_t * freq, int64_t i, int64_t threads);
 #endif
 
     /**

@@ -6,7 +6,7 @@ The libsais library provides fast (see [Benchmarks](#benchmarks) below) linear-t
 * Nataliya Timoshevskaya, Wu-chun Feng *SAIS-OPT: On the characterization and optimization of the SA-IS algorithm for suffix array construction*, 2014
 * Jing Yi Xie, Ge Nong, Bin Lao, Wentao Xu *Scalable Suffix Sorting on a Multicore Machine*, 2020
 
-Copyright (c) 2021-2025 Ilya Grebnov <ilya.grebnov@gmail.com>
+Copyright (c) 2021-2026 Ilya Grebnov <ilya.grebnov@gmail.com>
 
 >The libsais is inspired by [libdivsufsort](https://github.com/y-256/libdivsufsort), [sais](https://sites.google.com/site/yuta256/sais) libraries by Yuta Mori and [msufsort](https://github.com/michaelmaniscalco/msufsort) by Michael Maniscalco.
 
@@ -28,6 +28,15 @@ The libsais is memory-bound, so performance scales primarily with memory bandwid
 ## Changes
 _For the full changelog, see [CHANGES](CHANGES)._
 
+* October 18, 2026 (2.12.0)
+  * Changed license to Apache License 2.0 with LLVM Exceptions.
+  * Support for cyclic Burrows-Wheeler transform and inverse BWT construction (e.g. as used by bzip2).
+  * Significantly improved performance of inverse BWT, both single- and multi-threaded.
+  * Improved performance of suffix array and Burrows-Wheeler transform construction.
+  * Fixed crashes and incorrect results when OpenMP provides fewer threads than requested (e.g. under OMP_THREAD_LIMIT).
+  * Fixed out-of-bounds memory access in inverse BWT for inputs that are not a valid BWT.
+  * Fixed handling of invalid alphabet sizes, of alphabets larger than 2^31 symbols (libsais64, libsais16x64) and of very large thread counts in 32-bit builds.
+  * Resolved compiler warnings with GCC 16.
 * September 1, 2025 (2.10.4)
   * Tuned prefetch distance for improved throughput.
 * August 12, 2025 (2.10.3)
@@ -117,7 +126,7 @@ _For the full changelog, see [CHANGES](CHANGES)._
 CPMAddPackage(
   NAME libsais
   GITHUB_REPOSITORY IlyaGrebnov/libsais
-  GIT_TAG v2.10.4
+  GIT_TAG v2.12.0
   OPTIONS
     "LIBSAIS_USE_OPENMP OFF"
     "LIBSAIS_BUILD_SHARED_LIB OFF"
