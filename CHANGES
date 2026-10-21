@@ -1,3 +1,9 @@
+Changes in 2.12.1 (October 21, 2026)
+- Fixed compilation errors and warnings with MSVC for ARM64 and ARM64EC targets.
+- Fixed incorrect results on big-endian AArch64 targets, and of libsais64 and libsais16x64 on all big-endian targets.
+- Fixed byte-order detection on big-endian BSD targets.
+- Big-endian targets now always use the portable (non-SIMD) code.
+
 Changes in 2.12.0 (October 18, 2026)
 - Changed license to Apache License 2.0 with LLVM Exceptions.
 - Support for cyclic Burrows-Wheeler transform and inverse BWT construction (e.g. as used by bzip2).

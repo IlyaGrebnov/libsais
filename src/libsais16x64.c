@@ -125,7 +125,7 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
 #if defined(HAS_BUILTIN_PREFETCH)
     #define libsais16x64_prefetchr(address) __builtin_prefetch((const void *)(address), 0, 3)
     #define libsais16x64_prefetchw(address) __builtin_prefetch((const void *)(address), 1, 3)
-#elif defined (_M_IX86) || defined (_M_AMD64)
+#elif (defined (_M_IX86) || defined (_M_AMD64)) && !defined (_M_ARM64EC)
     #include <intrin.h>
     #define libsais16x64_prefetchr(address) _mm_prefetch((const void *)(address), _MM_HINT_T0)
     #define libsais16x64_prefetchw(address) _m_prefetchw((const void *)(address))
@@ -133,7 +133,7 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
     #include <intrin.h>
     #define libsais16x64_prefetchr(address) __prefetch((const void *)(address))
     #define libsais16x64_prefetchw(address) __prefetchw((const void *)(address))
-#elif defined (_M_ARM64)
+#elif defined (_M_ARM64) || defined (_M_ARM64EC)
     #include <intrin.h>
     #define libsais16x64_prefetchr(address) __prefetch2((const void *)(address), 0)
     #define libsais16x64_prefetchw(address) __prefetch2((const void *)(address), 16)
@@ -142,13 +142,13 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
 #endif
 
 #if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
-    #if defined(_LITTLE_ENDIAN) \
+    #if (defined(_LITTLE_ENDIAN) && !defined(_BIG_ENDIAN)) \
             || (defined(BYTE_ORDER) && defined(LITTLE_ENDIAN) && BYTE_ORDER == LITTLE_ENDIAN) \
             || (defined(_BYTE_ORDER) && defined(_LITTLE_ENDIAN) && _BYTE_ORDER == _LITTLE_ENDIAN) \
             || (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && __BYTE_ORDER == __LITTLE_ENDIAN) \
             || (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
         #define __LITTLE_ENDIAN__
-    #elif defined(_BIG_ENDIAN) \
+    #elif (defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN)) \
             || (defined(BYTE_ORDER) && defined(BIG_ENDIAN) && BYTE_ORDER == BIG_ENDIAN) \
             || (defined(_BYTE_ORDER) && defined(_BIG_ENDIAN) && _BYTE_ORDER == _BIG_ENDIAN) \
             || (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN) \
@@ -156,6 +156,8 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
         #define __BIG_ENDIAN__
     #elif defined(_WIN32)
         #define __LITTLE_ENDIAN__
+    #else
+        #error Your compiler, configuration or platform is not supported.
     #endif
 #endif
 
@@ -6827,7 +6829,7 @@ static void libsais16x64_convert_inplace_32u_to_64u(uint32_t * V, fast_sint_t om
 #if defined(__LITTLE_ENDIAN__)
         V[i + i + 0] = V[i]; V[i + i + 1] = 0;
 #else
-        V[i + i + 0] = 0; V[i + i + 1] = V[i];
+        V[i + i + 1] = V[i]; V[i + i + 0] = 0;
 #endif
     }
 }

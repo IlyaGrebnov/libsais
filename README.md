@@ -28,6 +28,11 @@ The libsais is memory-bound, so performance scales primarily with memory bandwid
 ## Changes
 _For the full changelog, see [CHANGES](CHANGES)._
 
+* October 21, 2026 (2.12.1)
+  * Fixed compilation errors and warnings with MSVC for ARM64 and ARM64EC targets.
+  * Fixed incorrect results on big-endian AArch64 targets, and of libsais64 and libsais16x64 on all big-endian targets.
+  * Fixed byte-order detection on big-endian BSD targets.
+  * Big-endian targets now always use the portable (non-SIMD) code.
 * October 18, 2026 (2.12.0)
   * Changed license to Apache License 2.0 with LLVM Exceptions.
   * Support for cyclic Burrows-Wheeler transform and inverse BWT construction (e.g. as used by bzip2).
@@ -126,7 +131,7 @@ _For the full changelog, see [CHANGES](CHANGES)._
 CPMAddPackage(
   NAME libsais
   GITHUB_REPOSITORY IlyaGrebnov/libsais
-  GIT_TAG v2.12.0
+  GIT_TAG v2.12.1
   OPTIONS
     "LIBSAIS_USE_OPENMP OFF"
     "LIBSAIS_BUILD_SHARED_LIB OFF"

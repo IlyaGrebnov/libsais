@@ -203,9 +203,9 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
 #ifndef LIBSAIS_CPU_FEATURE
     #if defined(__AVX2__)
         #define LIBSAIS_CPU_FEATURE LIBSAIS_CPU_FEATURE_AVX2
-    #elif defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) || defined(_M_AMD64) || defined(_M_X64)
+    #elif (defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) || defined(_M_AMD64) || defined(_M_X64)) && !defined(_M_ARM64EC)
         #define LIBSAIS_CPU_FEATURE LIBSAIS_CPU_FEATURE_SSE2
-    #elif defined(__aarch64__) || defined(_M_ARM64)
+    #elif (defined(__aarch64__) && !defined(__AARCH64EB__)) || defined(_M_ARM64)
         #define LIBSAIS_CPU_FEATURE LIBSAIS_CPU_FEATURE_A64
     #else
         #define LIBSAIS_CPU_FEATURE LIBSAIS_CPU_FEATURE_NONE
@@ -224,12 +224,15 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
     #endif
 #elif LIBSAIS_CPU_FEATURE == LIBSAIS_CPU_FEATURE_A64
     #include <arm_neon.h>
+    #if defined(_MSC_VER) && !defined(__clang__)
+        #pragma warning(disable: 4223)
+    #endif
 #endif
 
 #if defined(HAS_BUILTIN_PREFETCH)
     #define libsais_prefetchr(address) __builtin_prefetch((const void *)(address), 0, 3)
     #define libsais_prefetchw(address) __builtin_prefetch((const void *)(address), 1, 3)
-#elif defined (_M_IX86) || defined (_M_AMD64)
+#elif (defined (_M_IX86) || defined (_M_AMD64)) && !defined (_M_ARM64EC)
     #include <intrin.h>
     #define libsais_prefetchr(address) _mm_prefetch((const void *)(address), _MM_HINT_T0)
     #define libsais_prefetchw(address) _m_prefetchw((const void *)(address))
@@ -237,7 +240,7 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
     #include <intrin.h>
     #define libsais_prefetchr(address) __prefetch((const void *)(address))
     #define libsais_prefetchw(address) __prefetchw((const void *)(address))
-#elif defined (_M_ARM64)
+#elif defined (_M_ARM64) || defined (_M_ARM64EC)
     #include <intrin.h>
     #define libsais_prefetchr(address) __prefetch2((const void *)(address), 0)
     #define libsais_prefetchw(address) __prefetch2((const void *)(address), 16)
@@ -246,13 +249,13 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
 #endif
 
 #if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
-    #if defined(_LITTLE_ENDIAN) \
+    #if (defined(_LITTLE_ENDIAN) && !defined(_BIG_ENDIAN)) \
             || (defined(BYTE_ORDER) && defined(LITTLE_ENDIAN) && BYTE_ORDER == LITTLE_ENDIAN) \
             || (defined(_BYTE_ORDER) && defined(_LITTLE_ENDIAN) && _BYTE_ORDER == _LITTLE_ENDIAN) \
             || (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && __BYTE_ORDER == __LITTLE_ENDIAN) \
             || (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
         #define __LITTLE_ENDIAN__
-    #elif defined(_BIG_ENDIAN) \
+    #elif (defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN)) \
             || (defined(BYTE_ORDER) && defined(BIG_ENDIAN) && BYTE_ORDER == BIG_ENDIAN) \
             || (defined(_BYTE_ORDER) && defined(_BIG_ENDIAN) && _BYTE_ORDER == _BIG_ENDIAN) \
             || (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN) \
@@ -260,6 +263,8 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
         #define __BIG_ENDIAN__
     #elif defined(_WIN32)
         #define __LITTLE_ENDIAN__
+    #else
+        #error Your compiler, configuration or platform is not supported.
     #endif
 #endif
 
@@ -274,6 +279,10 @@ typedef struct LIBSAIS_UNBWT_CONTEXT
 #elif !defined(__LITTLE_ENDIAN__) && defined(__BIG_ENDIAN__)
     #define libsais_bswap16(x) (x)
 #else
+    #error Your compiler, configuration or platform is not supported.
+#endif
+
+#if (LIBSAIS_CPU_FEATURE != LIBSAIS_CPU_FEATURE_NONE) && defined(__BIG_ENDIAN__)
     #error Your compiler, configuration or platform is not supported.
 #endif
 
@@ -1194,9 +1203,9 @@ static libsais_lanes_32s_t libsais_load_reversed_32s(const sa_sint_t * RESTRICT 
 
 static uint64_t libsais_mask_32s(uint32x4_t m)
 {
-    const uint32x4_t weights = { 1, 2, 4, 8 };
+    static const uint32_t lanes[4] = { 1, 2, 4, 8 };
 
-    return (uint64_t)vaddvq_u32(vandq_u32(m, weights));
+    return (uint64_t)vaddvq_u32(vandq_u32(m, vld1q_u32(lanes)));
 }
 
 static uint64_t libsais_mask_greater_or_equal_32s(libsais_lanes_32s_t c0, libsais_lanes_32s_t c1)
@@ -9098,7 +9107,9 @@ static void libsais_clear_marks_8x32s(sa_sint_t * RESTRICT p)
 
 static fast_uint_t libsais_lane_mask_8x32s(uint32x4_t lo, uint32x4_t hi)
 {
-    const int32x4_t shift = { 0, 1, 2, 3 };
+    static const int32_t lanes[4] = { 0, 1, 2, 3 };
+
+    int32x4_t shift = vld1q_s32(lanes);
 
     return (fast_uint_t)(vaddvq_u32(vshlq_u32(vshrq_n_u32(lo, 31), shift)) | (vaddvq_u32(vshlq_u32(vshrq_n_u32(hi, 31), shift)) << 4));
 }
